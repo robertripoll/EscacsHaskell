@@ -32,11 +32,16 @@ data Posicio = Char :/ Int
 instance Show Posicio where
     show (fila :/ col) = show fila ++ show col      -- Estaria bé que la fila sortís sense les comilles simples 'a'
 
---data Jugada = 
+data Jugada = Jug Peca Posicio Posicio
+
+instance Show Jugada where
+    show (Jug p x0 x1) = show p ++ show x0 ++ show x1
 
 unaPosicio :: Posicio
 unaPosicio = 'a' :/ 1
 
+unaJugada :: Jugada
+unaJugada = Jug Torre ('a':/3) ('b':/2)
 --moviment :: Peca -> Posicio -> [Posicions]
 --moviment x p = []
 
