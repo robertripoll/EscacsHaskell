@@ -20,6 +20,9 @@ instance Show Peca where
 
 data Posicio = Char :/ Int deriving Eq
 
+posicio :: Char -> Int -> Posicio
+posicio c f = if (c >= 'a' && c <= 'h' && f >= 1 && f <= 8) then c :/ f else error "Posició no vàlida"
+
 instance Show Posicio where
     show (fila :/ col) = show fila ++ show col      -- Estaria bé que la fila sortís sense les comilles simples 'a'
 
@@ -27,6 +30,8 @@ data Jugada = Jug Peca Posicio Posicio
 
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
+
+
 
 rei :: Peca
 rei = Rei
