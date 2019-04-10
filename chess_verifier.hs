@@ -26,12 +26,22 @@ posicio c f = if (c >= 'a' && c <= 'h' && f >= 1 && f <= 8) then c :/ f else err
 instance Show Posicio where
     show (fila :/ col) = show fila ++ show col      -- Estaria bé que la fila sortís sense les comilles simples 'a'
 
+data Casella = Cas Posicio Peca
+
+-- instance Eq Casella where
+--     Cero == Cero = True
+--     Suc x == Suc y = (x == y)
+--     _ == _ = False
+
 data Jugada = Jug Peca Posicio Posicio
 
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
 
+data Tauler = Tau [Casella] Color
 
+instance Show Tauler where
+    show (Tau (x : xs) c) = show "abc"
 
 rei :: Peca
 rei = Rei
