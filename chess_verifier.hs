@@ -5,66 +5,95 @@
 --      Jugada
 --      Posició
 
+import Data.Char
+
 data Color = Blanc | Negre deriving Eq
 
-data Peca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
+data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
+
+data Peca = Pec TipusPeca Color
+
+mostrarColor :: Color -> Char -> Char
+mostrarColor x c = if (x == Negre) then toLower c else c
 
 instance Show Peca where
-    show p
-        | (p == Rei) = show 'R'
-        | (p == Reina) = show 'D'
-        | (p == Torre) = show 'T'
-        | (p == Alfil) = show 'A'
-        | (p == Cavall) = show 'C'
-        | otherwise = show 'P'
+    show (Pec tipus color)
+        | (tipus == Rei) = show (mostrarColor color 'R')
+        | (tipus == Reina) = show (mostrarColor color 'D')
+        | (tipus == Torre) = show (mostrarColor color 'T')
+        | (tipus == Alfil) = show (mostrarColor color 'A')
+        | (tipus == Cavall) = show (mostrarColor color 'C')
+        | otherwise = show (mostrarColor color 'P')
 
 data Posicio = Char :/ Int deriving Eq
 
-posicio :: Char -> Int -> Posicio
-posicio c f = if (c >= 'a' && c <= 'h' && f >= 1 && f <= 8) then c :/ f else error "Posició no vàlida"
-
 instance Show Posicio where
-    show (fila :/ col) = show fila ++ show col      -- Estaria bé que la fila sortís sense les comilles simples 'a'
-
-data Casella = Cas Posicio Peca
-
--- instance Eq Casella where
---     Cero == Cero = True
---     Suc x == Suc y = (x == y)
---     _ == _ = False
+    show (fila :/ col) = show fila ++ show col
 
 data Jugada = Jug Peca Posicio Posicio
 
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
 
-data Tauler = Tau [Casella] Color
+data Casella = Peca | Buida
+
+data Tauler = Tau [[Casella]] Color
 
 instance Show Tauler where
     show (Tau (x : xs) c) = show "abc"
 
 rei :: Peca
-rei = Rei
+rei = Pec Rei Blanc
 
 reina :: Peca
-reina = Reina
+reina = Pec Reina Negre
 
 torre :: Peca
-torre = Torre
+torre = Pec Torre Negre
 
 unaPosicio :: Posicio
-unaPosicio = 'a' :/ 1
+unaPosicio = 'h' :/ 8
 
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
 
 unaJugada :: Jugada
-unaJugada = Jug Torre ('a':/3) ('b':/2)
+unaJugada = Jug torre ('a':/3) ('b':/2)
 
+posicioValida :: Posicio -> Bool
+posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
 
+posicioUp :: Posicio -> Posicio
+posicioUp (col :/ fila) = col :/ (fila + 1)
 
---moviment :: Peca -> Posicio -> [Posicions]
---moviment x p = []
+posicioDown :: Posicio -> Posicio
+posicioDown (col :/ fila) = col :/ (fila - 1)
+
+posicioRight :: Posicio -> Posicio
+posicioRight (col :/ fila) = (chr (ord col + 1)) :/ fila
+
+posicioLeft :: Posicio -> Posicio
+posicioLeft (col :/ fila) = (chr (ord col - 1)) :/ fila
+
+posicioDiagSupEsq :: Posicio -> Posicio
+posicioDiagSupEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila + 1)
+
+posicioDiagSupDreta :: Posicio -> Posicio
+posicioDiagSupDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila + 1)
+
+posicioDiagInfEsq :: Posicio -> Posicio
+posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
+
+posicioDiagInfDreta :: Posicio -> Posicio
+posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
+
+generarMoviments :: TipusPeca -> Posicio -> [Posicio]
+generarMoviments x p
+   | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
+   | otherwise = []
+
+moviment :: Peca -> Posicio -> [Posicio]
+moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 
 --alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 --alguEntre t p q = False
