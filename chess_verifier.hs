@@ -51,8 +51,11 @@ reina = Pec Reina Negre
 torre :: Peca
 torre = Pec Torre Negre
 
+alfil :: Peca
+alfil = Pec Alfil Negre
+
 unaPosicio :: Posicio
-unaPosicio = 'h' :/ 8
+unaPosicio = 'b' :/ 2
 
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
@@ -87,13 +90,26 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
 
+   -- Això fa 7 iteracions d'un moviment, afegint cada cop el resultat a una llista
+llista7 :: [Posicio -> Posicio] -> Posicio -> [Posicio]
+llista7 [] _ = []
+llista7 (f:fs) x = (llista7 fs x) ++ take 7 (iterate f (f x))
+
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
    | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
+   | x == Torre =   llista7 [posicioUp, posicioDown, posicioLeft, posicioRight] p
+   | x == Alfil =   llista7 [posicioDiagSupDreta, posicioDiagSupEsq, posicioDiagInfDreta, posicioDiagInfEsq] p
+   | x == Reina =   llista7 [posicioUp, posicioDown, posicioLeft, posicioRight] p ++
+                    llista7 [posicioDiagSupDreta, posicioDiagSupEsq, posicioDiagInfDreta, posicioDiagInfEsq] p
+   | x == Rei = [posicioUp p, posicioDown p, posicioLeft p, posicioRight p, 
+                 posicioDiagSupDreta p, posicioDiagSupEsq p, posicioDiagInfDreta p, posicioDiagInfEsq p]
+   -- | x == Caball -- per definir                 
    | otherwise = []
 
 moviment :: Peca -> Posicio -> [Posicio]
 moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
+
 
 --alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 --alguEntre t p q = False
