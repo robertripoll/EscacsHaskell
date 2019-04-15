@@ -1,24 +1,111 @@
 -- CLASSES:
--- 		Peça
--- 		Tauler
--- 		Partida
--- 		Jugada
---		Posició?
+--      Peça
+--      Tauler
+--      Partida
+--      Jugada
+--      Posició
 
-moviment :: Peca -> Posicio -> [Posicions]
-moviment x p = []
+import Data.Char
 
-alguEntre :: Tauler -> Posicio -> Posicio -> Bool
-alguEntre t p q = False
+data Color = Blanc | Negre deriving Eq
 
-fesJugada :: Tauler -> Jugada -> Tauler
-fesJugada t j = t
+data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
 
-escac :: Tauler -> Color -> Bool
-escac t c = False
+data Peca = Pec TipusPeca Color
 
-jugadaLegal :: Tauler -> Jugada -> Bool
-jugadaLegal t j = False
+mostrarColor :: Color -> Char -> Char
+mostrarColor x c = if (x == Negre) then toLower c else c
 
-escacMat :: Tauler -> Color -> Bool
-escacMat t c = False
+instance Show Peca where
+    show (Pec tipus color)
+        | (tipus == Rei) = show (mostrarColor color 'R')
+        | (tipus == Reina) = show (mostrarColor color 'D')
+        | (tipus == Torre) = show (mostrarColor color 'T')
+        | (tipus == Alfil) = show (mostrarColor color 'A')
+        | (tipus == Cavall) = show (mostrarColor color 'C')
+        | otherwise = show (mostrarColor color 'P')
+
+data Posicio = Char :/ Int deriving Eq
+
+instance Show Posicio where
+    show (fila :/ col) = show fila ++ show col
+
+data Jugada = Jug Peca Posicio Posicio
+
+instance Show Jugada where
+    show (Jug p x0 x1) = show p ++ show x0 ++ show x1
+
+data Casella = Peca | Buida
+
+data Tauler = Tau [[Casella]] Color
+
+instance Show Tauler where
+    show (Tau (x : xs) c) = show "abc"
+
+rei :: Peca
+rei = Pec Rei Blanc
+
+reina :: Peca
+reina = Pec Reina Negre
+
+torre :: Peca
+torre = Pec Torre Negre
+
+unaPosicio :: Posicio
+unaPosicio = 'h' :/ 8
+
+unaAltraPos :: Posicio
+unaAltraPos = 'a' :/ 1
+
+unaJugada :: Jugada
+unaJugada = Jug torre ('a':/3) ('b':/2)
+
+posicioValida :: Posicio -> Bool
+posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
+
+posicioUp :: Posicio -> Posicio
+posicioUp (col :/ fila) = col :/ (fila + 1)
+
+posicioDown :: Posicio -> Posicio
+posicioDown (col :/ fila) = col :/ (fila - 1)
+
+posicioRight :: Posicio -> Posicio
+posicioRight (col :/ fila) = (chr (ord col + 1)) :/ fila
+
+posicioLeft :: Posicio -> Posicio
+posicioLeft (col :/ fila) = (chr (ord col - 1)) :/ fila
+
+posicioDiagSupEsq :: Posicio -> Posicio
+posicioDiagSupEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila + 1)
+
+posicioDiagSupDreta :: Posicio -> Posicio
+posicioDiagSupDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila + 1)
+
+posicioDiagInfEsq :: Posicio -> Posicio
+posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
+
+posicioDiagInfDreta :: Posicio -> Posicio
+posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
+
+generarMoviments :: TipusPeca -> Posicio -> [Posicio]
+generarMoviments x p
+   | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
+   | otherwise = []
+
+moviment :: Peca -> Posicio -> [Posicio]
+moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
+
+--alguEntre :: Tauler -> Posicio -> Posicio -> Bool
+--alguEntre t p q = False
+
+--fesJugada :: Tauler -> Jugada -> Tauler
+--fesJugada t j = t
+
+--escac :: Tauler -> Color -> Bool
+--escac t c = False
+
+--jugadaLegal :: Tauler -> Jugada -> Bool
+--jugadaLegal t j = False
+
+--escacMat :: Tauler -> Color -> Bool
+--escacMat t c = False
