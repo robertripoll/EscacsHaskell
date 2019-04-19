@@ -52,7 +52,7 @@ torre :: Peca
 torre = Pec Torre Negre
 
 unaPosicio :: Posicio
-unaPosicio = 'h' :/ 8
+unaPosicio = 'c' :/ 4
 
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
@@ -86,6 +86,12 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
+
+aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
+aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
+    where
+        aplic = f x
+        valida = posicioValida aplic
 
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
