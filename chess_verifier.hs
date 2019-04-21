@@ -96,8 +96,13 @@ aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
    | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
-   | otherwise = []
+   | x == Cavall = []
+   | x == Alfil = [(aplicarFunc posicioDiagSupEsq p), (aplicarFunc posicioDiagSupDreta p), (aplicarFunc posicioDiagInfEsq p), (aplicarFunc posicioDiagInfDreta p)]
+   | x == Torre = [(aplicarFunc posicioUp p), (aplicarFunc posicioRight p), (aplicarFunc posicioDown p), (aplicarFunc posicioLeft p)]
+   | x == Reina = [(aplicarFunc posicioUp p), (aplicarFunc posicioRight p), (aplicarFunc posicioDown p), (aplicarFunc posicioLeft p), (aplicarFunc posicioDiagSupEsq p), (aplicarFunc posicioDiagSupDreta p), (aplicarFunc posicioDiagInfEsq p), (aplicarFunc posicioDiagInfDreta p)]
+   | otherwise = [posicioUp p, posicioDiagSupDreta p, posicioRight p, posicioDiagInfDreta p, posicioDown p, posicioDiagInfEsq p, posicioLeft p, posicioDiagSupEsq p] -- Cas del Rei
 
+-- En aquesta funció sobraria el filter posicioValida per "Alfil", "Torre", "Reina"
 moviment :: Peca -> Posicio -> [Posicio]
 moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 
@@ -110,8 +115,10 @@ moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
 
---jugadaLegal :: Tauler -> Jugada -> Bool
---jugadaLegal t j = False
+-- OBJECTIU: comprovar si la jugada està dins dels moviments possibles i
+-- comprovar que no hi hagi ningú a la casella destí
+jugadaLegal :: Tauler -> Jugada -> Bool
+jugadaLegal t (Jug p _ x) = 
 
 --escacMat :: Tauler -> Color -> Bool
 --escacMat t c = False
