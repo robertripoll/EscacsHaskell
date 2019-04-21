@@ -55,7 +55,7 @@ alfil :: Peca
 alfil = Pec Alfil Negre
 
 unaPosicio :: Posicio
-unaPosicio = 'b' :/ 2
+unaPosicio = 'c' :/ 4
 
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
@@ -90,10 +90,16 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
 
-   -- Això fa 7 iteracions d'un moviment, afegint cada cop el resultat a una llista
+-- Això fa 7 iteracions d'un moviment, afegint cada cop el resultat a una llista
 llista7 :: [Posicio -> Posicio] -> Posicio -> [Posicio]
 llista7 [] _ = []
 llista7 (f:fs) x = (llista7 fs x) ++ take 7 (iterate f (f x))
+
+aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
+aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
+    where
+        aplic = f x
+        valida = posicioValida aplic
 
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
