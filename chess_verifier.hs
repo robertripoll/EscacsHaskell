@@ -57,8 +57,11 @@ unaPosicio = 'c' :/ 4
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
 
+unTauler :: Tauler
+unTauler = Tau [[]] Blanc
+
 unaJugada :: Jugada
-unaJugada = Jug torre ('a':/3) ('b':/2)
+unaJugada = Jug torre ('a':/3) ('z':/3)
 
 posicioValida :: Posicio -> Bool
 posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
@@ -97,9 +100,9 @@ generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
    | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
    | x == Cavall = []
-   | x == Alfil = [(aplicarFunc posicioDiagSupEsq p), (aplicarFunc posicioDiagSupDreta p), (aplicarFunc posicioDiagInfEsq p), (aplicarFunc posicioDiagInfDreta p)]
-   | x == Torre = [(aplicarFunc posicioUp p), (aplicarFunc posicioRight p), (aplicarFunc posicioDown p), (aplicarFunc posicioLeft p)]
-   | x == Reina = [(aplicarFunc posicioUp p), (aplicarFunc posicioRight p), (aplicarFunc posicioDown p), (aplicarFunc posicioLeft p), (aplicarFunc posicioDiagSupEsq p), (aplicarFunc posicioDiagSupDreta p), (aplicarFunc posicioDiagInfEsq p), (aplicarFunc posicioDiagInfDreta p)]
+   | x == Alfil = (aplicarFunc posicioDiagSupEsq p) ++ (aplicarFunc posicioDiagSupDreta p) ++ (aplicarFunc posicioDiagInfEsq p) ++ (aplicarFunc posicioDiagInfDreta p)
+   | x == Torre = (aplicarFunc posicioUp p) ++ (aplicarFunc posicioRight p) ++ (aplicarFunc posicioDown p) ++ (aplicarFunc posicioLeft p)
+   | x == Reina = (aplicarFunc posicioUp p) ++ (aplicarFunc posicioRight p) ++ (aplicarFunc posicioDown p) ++ (aplicarFunc posicioLeft p) ++ (aplicarFunc posicioDiagSupEsq p) ++ (aplicarFunc posicioDiagSupDreta p) ++ (aplicarFunc posicioDiagInfEsq p) ++ (aplicarFunc posicioDiagInfDreta p)
    | otherwise = [posicioUp p, posicioDiagSupDreta p, posicioRight p, posicioDiagInfDreta p, posicioDown p, posicioDiagInfEsq p, posicioLeft p, posicioDiagSupEsq p] -- Cas del Rei
 
 -- En aquesta funció sobraria el filter posicioValida per "Alfil", "Torre", "Reina"
@@ -115,10 +118,17 @@ moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
 
+casellaLliure :: Tauler -> Posicio -> Bool
+casellaLliure t p = True
+
+existeixElem :: Eq a => a -> [a] -> Bool
+existeixElem a [] = False
+existeixElem a (x : xs) = if (a == x) then True else existeixElem a xs
+
 -- OBJECTIU: comprovar si la jugada està dins dels moviments possibles i
 -- comprovar que no hi hagi ningú a la casella destí
 jugadaLegal :: Tauler -> Jugada -> Bool
-jugadaLegal t (Jug p _ x) = 
+jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (existeixElem x1 (moviment (Pec tipus c) x0))
 
 --escacMat :: Tauler -> Color -> Bool
 --escacMat t c = False
