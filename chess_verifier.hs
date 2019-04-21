@@ -57,11 +57,11 @@ torre = Pec Torre Negre
 alfil :: Peca
 alfil = Pec Alfil Negre
 
-unaPosicio :: Posicio
-unaPosicio = 'a' :/ 4
+posA :: Posicio
+posA = 'a' :/ 5
 
-unaAltraPos :: Posicio
-unaAltraPos = 'a' :/ 1
+posB :: Posicio
+posB = 'c' :/ 3
 
 unTauler :: Tauler
 unTauler = Tau [[]] Blanc
@@ -158,13 +158,13 @@ posicionsEntre a b
             then (generarPosicions a b posicioUp)
             else if (compCol == -1)
                 then (generarPosicions a b posicioDiagSupDreta)
-                else (generarPosicions a b posicioDiagInfEsq)
-    | otherwise =
+                else (generarPosicions a b posicioDiagSupEsq)
+    | otherwise = 
         if (compCol == 0)
             then (generarPosicions a b posicioDown)
             else if (compCol == -1)
                 then (generarPosicions a b posicioDiagInfDreta)
-                else (generarPosicions a b posicioDiagSupEsq)
+                else (generarPosicions a b posicioDiagInfEsq)
     where
         compFila = compararFila a b
         compCol = compararColumna a b
