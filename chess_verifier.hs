@@ -132,7 +132,7 @@ generarPosicions :: Posicio -> Posicio -> (Posicio -> Posicio) -> [Posicio]
 generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f) else []
     where
         segCas = f a
-        valida = (posicioValida segCas) && (a /= b)
+        valida = (posicioValida segCas) && (segCas /= b)
 
 -- No funciona per algun problema de sintaxi, el concepte en sí està bé
 posicionsEntre :: Posicio -> Posicio -> [Posicio]
