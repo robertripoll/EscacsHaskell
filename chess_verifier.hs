@@ -139,32 +139,29 @@ posicionsEntre :: Posicio -> Posicio -> [Posicio]
 posicionsEntre a b
     | compFila == 0 =
         if (compCol == 0)
-            then [a] ++ [b]
+            then []
             else if (compCol == -1)
-                then [a] ++ (generarPosicions a b posicioRight) ++ [b]
-                else [a] ++ (generarPosicions a b posicioLeft) ++ [b]
+                then (generarPosicions a b posicioRight)
+                else (generarPosicions a b posicioLeft)
     | compFila == -1 =
         if (compCol == 0)
-            then [a] ++ (generarPosicions a b posicioUp) ++ [b]
+            then (generarPosicions a b posicioUp)
             else if (compCol == -1)
-                then [a] ++ (generarPosicions a b posicioDiagSupDreta) ++ [b]
-                else [a] ++ (generarPosicions a b posicioDiagInfEsq) ++ [b]
+                then (generarPosicions a b posicioDiagSupDreta)
+                else (generarPosicions a b posicioDiagInfEsq)
     | otherwise =
         if (compCol == 0)
-            then [a] ++ (generarPosicions a b posicioDown) ++ [b]
+            then (generarPosicions a b posicioDown)
             else if (compCol == -1)
-                then [a] ++ (generarPosicions a b posicioDiagInfDreta) ++ [b]
-                else [a] ++ (generarPosicions a b posicioDiagSupEsq) ++ [b]
+                then (generarPosicions a b posicioDiagInfDreta)
+                else (generarPosicions a b posicioDiagSupEsq)
     where
         compFila = compararFila a b
         compCol = compararColumna a b
 
--- Aquesta funció hauria d'obtenir una llista de les caselles entre 2 posicions i
--- veure si en aquesta llista hi ha alguna peça
--- Cal recordar que la funció generarPosicions aplicada a "posA" i "posB" retorna
--- (posA..posB], i "posA" no hi està inclosa!!!
-alguEntre :: Tauler -> Posicio -> Posicio -> Bool
-alguEntre t p q = False
+-- Ens fa falta una funció que accedeixi a una posició concreta del tauler...
+--alguEntre :: Tauler -> Posicio -> Posicio -> Bool
+--alguEntre t p q = posicionsEntre p q
 
 --fesJugada :: Tauler -> Jugada -> Tauler
 --fesJugada t j = t
