@@ -63,6 +63,24 @@ unTauler = Tau [[]] Blanc
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
 
+fila :: Posicio -> Int
+fila (_ :/ x) = x
+
+columna :: Posicio -> Char
+columna (x :/ _) = x
+
+compararFila :: Posicio -> Posicio -> Int
+compararFila (_ :/ fa) (_ :/ fb)
+    | fa == fb = 0
+    | fa < fb = -1
+    | otherwise = 1
+
+compararColumna :: Posicio -> Posicio -> Int
+compararColumna (ca :/ _) (cb :/ _)
+    | ca == cb = 0
+    | (ord ca) < (ord cb) = -1
+    | otherwise = 1
+
 posicioValida :: Posicio -> Bool
 posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
 
@@ -90,6 +108,7 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
 
+-- Retorna el resultat d'aplicar 
 aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
 aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
     where
@@ -109,8 +128,43 @@ generarMoviments x p
 moviment :: Peca -> Posicio -> [Posicio]
 moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 
---alguEntre :: Tauler -> Posicio -> Posicio -> Bool
---alguEntre t p q = False
+generarPosicions :: Posicio -> Posicio -> (Posicio -> Posicio) -> [Posicio]
+generarPosicions a b f = if (valida) segCas : (generarPosicions segCas b f) else []
+    where
+        segCas = f a
+        valida = (posicioValida segCas) && (a /= b)
+
+-- No funciona per algun problema de sintaxi, el concepte en sí està bé
+-- posicionsEntre :: Posicio -> Posicio -> [Posicio]
+-- posicionsEntre a b
+--     | compFila == 0 =
+--         if (compCol == 0)
+--             then a
+--             else if (compCol == -1)
+--                 then generarPosicions a b posicioRight
+--                 else generarPosicions a b posicioLeft
+--     | compFila == -1 =
+--         if (compCol == 0)
+--             then generarPosicions a b posicioUp
+--             else if (compCol == -1)
+--                 then generarPosicions a b posicioDiagSupDreta
+--                 else generarPosicions a b posicioDiagInfEsq
+--     | otherwise =
+--         if (compCol == 0)
+--             then generarPosicions a b posicioDown
+--             else if (compCol == -1)
+--                 then generarPosicions a b posicioDiagInfDreta
+--                 else generarPosicions a b posicioDiagSupEsq
+--     where
+--         compFila = compararFila a b
+--         compCol = compararColumna a b
+
+-- Aquesta funció hauria d'obtenir una llista de les caselles entre 2 posicions i
+-- veure si en aquesta llista hi ha alguna peça
+-- Cal recordar que la funció generarPosicions aplicada a "posA" i "posB" retorna
+-- (posA..posB], i "posA" no hi està inclosa!!!
+alguEntre :: Tauler -> Posicio -> Posicio -> Bool
+alguEntre t p q = False
 
 --fesJugada :: Tauler -> Jugada -> Tauler
 --fesJugada t j = t
@@ -125,8 +179,6 @@ existeixElem :: Eq a => a -> [a] -> Bool
 existeixElem a [] = False
 existeixElem a (x : xs) = if (a == x) then True else existeixElem a xs
 
--- OBJECTIU: comprovar si la jugada està dins dels moviments possibles i
--- comprovar que no hi hagi ningú a la casella destí
 jugadaLegal :: Tauler -> Jugada -> Bool
 jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (existeixElem x1 (moviment (Pec tipus c) x0))
 
