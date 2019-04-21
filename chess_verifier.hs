@@ -58,7 +58,7 @@ alfil :: Peca
 alfil = Pec Alfil Negre
 
 posA :: Posicio
-posA = 'a' :/ 5
+posA = 'g' :/ 5
 
 posB :: Posicio
 posB = 'c' :/ 3
@@ -113,6 +113,15 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
+
+posicioSeguent :: Posicio -> Posicio
+posicioSeguent (col :/ fila) = if (segCol > 'h') then ('a' :/ segFila) else (segCol :/ fila)
+    where
+        segCol = chr (ord col + 1)
+        segFila = fila + 1
+
+pecaTauler :: Tauler -> Posicio -> Peca
+pecaTauler t p = alfil
 
 -- Retorna el resultat d'aplicar 
 aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
