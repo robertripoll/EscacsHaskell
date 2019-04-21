@@ -48,6 +48,9 @@ rei = Pec Rei Blanc
 reina :: Peca
 reina = Pec Reina Negre
 
+cavall :: Peca
+cavall = Pec Cavall Negre
+
 torre :: Peca
 torre = Pec Torre Negre
 
@@ -55,7 +58,7 @@ alfil :: Peca
 alfil = Pec Alfil Negre
 
 unaPosicio :: Posicio
-unaPosicio = 'c' :/ 4
+unaPosicio = 'a' :/ 4
 
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
@@ -101,6 +104,9 @@ aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
         aplic = f x
         valida = posicioValida aplic
 
+sumaCoords :: Posicio -> Int -> Int -> Posicio
+sumaCoords (col :/ fila) x y = ((chr (ord col + x)) :/ (fila + y))
+
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
    | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
@@ -110,7 +116,8 @@ generarMoviments x p
                     llista7 [posicioDiagSupDreta, posicioDiagSupEsq, posicioDiagInfDreta, posicioDiagInfEsq] p
    | x == Rei = [posicioUp p, posicioDown p, posicioLeft p, posicioRight p, 
                  posicioDiagSupDreta p, posicioDiagSupEsq p, posicioDiagInfDreta p, posicioDiagInfEsq p]
-   -- | x == Caball -- per definir                 
+   | x == Cavall = [sumaCoords p 1 2, sumaCoords p 2 1, sumaCoords p 2 (-1), sumaCoords p 1 (-2), 
+                    sumaCoords p (-1) 2, sumaCoords p (-2) 1, sumaCoords p (-2) (-1), sumaCoords p (-1) (-2)]                 
    | otherwise = []
 
 moviment :: Peca -> Posicio -> [Posicio]
