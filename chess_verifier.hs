@@ -57,11 +57,11 @@ torre = Pec Torre Negre
 alfil :: Peca
 alfil = Pec Alfil Negre
 
-unaPosicio :: Posicio
-unaPosicio = 'a' :/ 4
+posA :: Posicio
+posA = 'a' :/ 5
 
-unaAltraPos :: Posicio
-unaAltraPos = 'a' :/ 1
+posB :: Posicio
+posB = 'c' :/ 3
 
 unTauler :: Tauler
 unTauler = Tau [[]] Blanc
@@ -144,7 +144,6 @@ generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f)
         segCas = f a
         valida = (posicioValida segCas) && (segCas /= b)
 
--- No funciona per algun problema de sintaxi, el concepte en sí està bé
 posicionsEntre :: Posicio -> Posicio -> [Posicio]
 posicionsEntre a b
     | compFila == 0 =
@@ -158,13 +157,13 @@ posicionsEntre a b
             then (generarPosicions a b posicioUp)
             else if (compCol == -1)
                 then (generarPosicions a b posicioDiagSupDreta)
-                else (generarPosicions a b posicioDiagInfEsq)
-    | otherwise =
+                else (generarPosicions a b posicioDiagSupEsq)
+    | otherwise = 
         if (compCol == 0)
             then (generarPosicions a b posicioDown)
             else if (compCol == -1)
                 then (generarPosicions a b posicioDiagInfDreta)
-                else (generarPosicions a b posicioDiagSupEsq)
+                else (generarPosicions a b posicioDiagInfEsq)
     where
         compFila = compararFila a b
         compCol = compararColumna a b
@@ -179,6 +178,7 @@ posicionsEntre a b
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
 
+-- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
 casellaLliure t p = True
 
