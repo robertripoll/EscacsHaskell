@@ -129,35 +129,35 @@ moviment :: Peca -> Posicio -> [Posicio]
 moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 
 generarPosicions :: Posicio -> Posicio -> (Posicio -> Posicio) -> [Posicio]
-generarPosicions a b f = if (valida) segCas : (generarPosicions segCas b f) else []
+generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f) else []
     where
         segCas = f a
         valida = (posicioValida segCas) && (a /= b)
 
 -- No funciona per algun problema de sintaxi, el concepte en sí està bé
--- posicionsEntre :: Posicio -> Posicio -> [Posicio]
--- posicionsEntre a b
---     | compFila == 0 =
---         if (compCol == 0)
---             then a
---             else if (compCol == -1)
---                 then generarPosicions a b posicioRight
---                 else generarPosicions a b posicioLeft
---     | compFila == -1 =
---         if (compCol == 0)
---             then generarPosicions a b posicioUp
---             else if (compCol == -1)
---                 then generarPosicions a b posicioDiagSupDreta
---                 else generarPosicions a b posicioDiagInfEsq
---     | otherwise =
---         if (compCol == 0)
---             then generarPosicions a b posicioDown
---             else if (compCol == -1)
---                 then generarPosicions a b posicioDiagInfDreta
---                 else generarPosicions a b posicioDiagSupEsq
---     where
---         compFila = compararFila a b
---         compCol = compararColumna a b
+posicionsEntre :: Posicio -> Posicio -> [Posicio]
+posicionsEntre a b
+    | compFila == 0 =
+        if (compCol == 0)
+            then [a] ++ [b]
+            else if (compCol == -1)
+                then [a] ++ (generarPosicions a b posicioRight) ++ [b]
+                else [a] ++ (generarPosicions a b posicioLeft) ++ [b]
+    | compFila == -1 =
+        if (compCol == 0)
+            then [a] ++ (generarPosicions a b posicioUp) ++ [b]
+            else if (compCol == -1)
+                then [a] ++ (generarPosicions a b posicioDiagSupDreta) ++ [b]
+                else [a] ++ (generarPosicions a b posicioDiagInfEsq) ++ [b]
+    | otherwise =
+        if (compCol == 0)
+            then [a] ++ (generarPosicions a b posicioDown) ++ [b]
+            else if (compCol == -1)
+                then [a] ++ (generarPosicions a b posicioDiagInfDreta) ++ [b]
+                else [a] ++ (generarPosicions a b posicioDiagSupEsq) ++ [b]
+    where
+        compFila = compararFila a b
+        compCol = compararColumna a b
 
 -- Aquesta funció hauria d'obtenir una llista de les caselles entre 2 posicions i
 -- veure si en aquesta llista hi ha alguna peça
