@@ -144,7 +144,6 @@ generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f)
         segCas = f a
         valida = (posicioValida segCas) && (segCas /= b)
 
--- No funciona per algun problema de sintaxi, el concepte en sí està bé
 posicionsEntre :: Posicio -> Posicio -> [Posicio]
 posicionsEntre a b
     | compFila == 0 =
@@ -179,6 +178,7 @@ posicionsEntre a b
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
 
+-- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
 casellaLliure t p = True
 
