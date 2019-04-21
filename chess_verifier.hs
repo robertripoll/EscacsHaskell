@@ -63,8 +63,29 @@ unaPosicio = 'a' :/ 4
 unaAltraPos :: Posicio
 unaAltraPos = 'a' :/ 1
 
+unTauler :: Tauler
+unTauler = Tau [[]] Blanc
+
 unaJugada :: Jugada
-unaJugada = Jug torre ('a':/3) ('b':/2)
+unaJugada = Jug torre ('a':/3) ('z':/3)
+
+fila :: Posicio -> Int
+fila (_ :/ x) = x
+
+columna :: Posicio -> Char
+columna (x :/ _) = x
+
+compararFila :: Posicio -> Posicio -> Int
+compararFila (_ :/ fa) (_ :/ fb)
+    | fa == fb = 0
+    | fa < fb = -1
+    | otherwise = 1
+
+compararColumna :: Posicio -> Posicio -> Int
+compararColumna (ca :/ _) (cb :/ _)
+    | ca == cb = 0
+    | (ord ca) < (ord cb) = -1
+    | otherwise = 1
 
 posicioValida :: Posicio -> Bool
 posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
@@ -93,11 +114,7 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
 
--- Això fa 7 iteracions d'un moviment, afegint cada cop el resultat a una llista
-llista7 :: [Posicio -> Posicio] -> Posicio -> [Posicio]
-llista7 [] _ = []
-llista7 (f:fs) x = (llista7 fs x) ++ take 7 (iterate f (f x))
-
+-- Retorna el resultat d'aplicar 
 aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
 aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
     where
@@ -110,22 +127,51 @@ sumaCoords (col :/ fila) x y = ((chr (ord col + x)) :/ (fila + y))
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
 generarMoviments x p
    | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
-   | x == Torre =   llista7 [posicioUp, posicioDown, posicioLeft, posicioRight] p
-   | x == Alfil =   llista7 [posicioDiagSupDreta, posicioDiagSupEsq, posicioDiagInfDreta, posicioDiagInfEsq] p
-   | x == Reina =   llista7 [posicioUp, posicioDown, posicioLeft, posicioRight] p ++
-                    llista7 [posicioDiagSupDreta, posicioDiagSupEsq, posicioDiagInfDreta, posicioDiagInfEsq] p
-   | x == Rei = [posicioUp p, posicioDown p, posicioLeft p, posicioRight p, 
-                 posicioDiagSupDreta p, posicioDiagSupEsq p, posicioDiagInfDreta p, posicioDiagInfEsq p]
    | x == Cavall = [sumaCoords p 1 2, sumaCoords p 2 1, sumaCoords p 2 (-1), sumaCoords p 1 (-2), 
-                    sumaCoords p (-1) 2, sumaCoords p (-2) 1, sumaCoords p (-2) (-1), sumaCoords p (-1) (-2)]                 
-   | otherwise = []
+                    sumaCoords p (-1) 2, sumaCoords p (-2) 1, sumaCoords p (-2) (-1), sumaCoords p (-1) (-2)]
+   | x == Alfil = (aplicarFunc posicioDiagSupEsq p) ++ (aplicarFunc posicioDiagSupDreta p) ++ (aplicarFunc posicioDiagInfEsq p) ++ (aplicarFunc posicioDiagInfDreta p)
+   | x == Torre = (aplicarFunc posicioUp p) ++ (aplicarFunc posicioRight p) ++ (aplicarFunc posicioDown p) ++ (aplicarFunc posicioLeft p)
+   | x == Reina = (aplicarFunc posicioUp p) ++ (aplicarFunc posicioRight p) ++ (aplicarFunc posicioDown p) ++ (aplicarFunc posicioLeft p) ++ (aplicarFunc posicioDiagSupEsq p) ++ (aplicarFunc posicioDiagSupDreta p) ++ (aplicarFunc posicioDiagInfEsq p) ++ (aplicarFunc posicioDiagInfDreta p)
+   | otherwise = [posicioUp p, posicioDiagSupDreta p, posicioRight p, posicioDiagInfDreta p, posicioDown p, posicioDiagInfEsq p, posicioLeft p, posicioDiagSupEsq p] -- Cas del Rei
 
+-- En aquesta funció sobraria el filter posicioValida per "Alfil", "Torre", "Reina"
 moviment :: Peca -> Posicio -> [Posicio]
 moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 
+generarPosicions :: Posicio -> Posicio -> (Posicio -> Posicio) -> [Posicio]
+generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f) else []
+    where
+        segCas = f a
+        valida = (posicioValida segCas) && (segCas /= b)
 
+-- No funciona per algun problema de sintaxi, el concepte en sí està bé
+posicionsEntre :: Posicio -> Posicio -> [Posicio]
+posicionsEntre a b
+    | compFila == 0 =
+        if (compCol == 0)
+            then []
+            else if (compCol == -1)
+                then (generarPosicions a b posicioRight)
+                else (generarPosicions a b posicioLeft)
+    | compFila == -1 =
+        if (compCol == 0)
+            then (generarPosicions a b posicioUp)
+            else if (compCol == -1)
+                then (generarPosicions a b posicioDiagSupDreta)
+                else (generarPosicions a b posicioDiagInfEsq)
+    | otherwise =
+        if (compCol == 0)
+            then (generarPosicions a b posicioDown)
+            else if (compCol == -1)
+                then (generarPosicions a b posicioDiagInfDreta)
+                else (generarPosicions a b posicioDiagSupEsq)
+    where
+        compFila = compararFila a b
+        compCol = compararColumna a b
+
+-- Ens fa falta una funció que accedeixi a una posició concreta del tauler...
 --alguEntre :: Tauler -> Posicio -> Posicio -> Bool
---alguEntre t p q = False
+--alguEntre t p q = posicionsEntre p q
 
 --fesJugada :: Tauler -> Jugada -> Tauler
 --fesJugada t j = t
@@ -133,8 +179,15 @@ moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
 
---jugadaLegal :: Tauler -> Jugada -> Bool
---jugadaLegal t j = False
+casellaLliure :: Tauler -> Posicio -> Bool
+casellaLliure t p = True
+
+existeixElem :: Eq a => a -> [a] -> Bool
+existeixElem a [] = False
+existeixElem a (x : xs) = if (a == x) then True else existeixElem a xs
+
+jugadaLegal :: Tauler -> Jugada -> Bool
+jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (existeixElem x1 (moviment (Pec tipus c) x0))
 
 --escacMat :: Tauler -> Color -> Bool
 --escacMat t c = False
