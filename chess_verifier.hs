@@ -78,16 +78,20 @@ casA = Cas posA (Just peo)
 casB :: Casella
 casB = Cas posB (Just torre)
 
+casC :: Casella
+casC = Cas posC Nothing
+
 esCasella :: Posicio -> Casella -> Bool
 esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
 
 unTauler :: [Casella]
-unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA]
+unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casC]
 
-trobarCasella :: [Casella] -> Posicio -> Casella
-trobarCasella ll p = if (null trobat) then error "Posició no trobada" else trobat !! 0
+trobarCasella :: [Casella] -> Posicio -> Maybe Peca
+trobarCasella ll p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
     where
         trobat = (filter (esCasella p) ll)
+        peca (Cas _ x) = x
 
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
