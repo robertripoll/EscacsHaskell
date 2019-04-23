@@ -69,6 +69,9 @@ posA = 'g' :/ 5
 posB :: Posicio
 posB = 'c' :/ 3
 
+posC :: Posicio
+posC = 'a' :/ 3
+
 casA :: Casella
 casA = Cas posA (Just peo)
 
@@ -82,7 +85,9 @@ unTauler :: [Casella]
 unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA]
 
 trobarCasella :: [Casella] -> Posicio -> Casella
-trobarCasella ll p = (filter (esCasella p) ll) !! 0
+trobarCasella ll p = if (null trobat) then error "Posició no trobada" else trobat !! 0
+    where
+        trobat = (filter (esCasella p) ll)
 
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
