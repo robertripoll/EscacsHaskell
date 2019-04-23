@@ -35,9 +35,12 @@ data Jugada = Jug Peca Posicio Posicio
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
 
-data Casella = Peca | Buida
+data Casella = Cas Posicio (Maybe Peca)
 
-data Tauler = Tau [[Casella]] Color
+instance Show Casella where
+    show (Cas _ (Just p)) = show p
+
+data Tauler = Tau [Casella] Color
 
 instance Show Tauler where
     show (Tau (x : xs) c) = show "abc"
@@ -57,14 +60,29 @@ torre = Pec Torre Negre
 alfil :: Peca
 alfil = Pec Alfil Negre
 
+peo :: Peca
+peo = Pec Peo Blanc
+
 posA :: Posicio
 posA = 'g' :/ 5
 
 posB :: Posicio
 posB = 'c' :/ 3
 
-unTauler :: Tauler
-unTauler = Tau [[]] Blanc
+casA :: Casella
+casA = Cas posA (Just peo)
+
+casB :: Casella
+casB = Cas posB (Just torre)
+
+esCasella :: Posicio -> Casella -> Bool
+esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
+
+unTauler :: [Casella]
+unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA]
+
+trobarCasella :: [Casella] -> Posicio -> Casella
+trobarCasella ll p = (filter (esCasella p) ll) !! 0
 
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
