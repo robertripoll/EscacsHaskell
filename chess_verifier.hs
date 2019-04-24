@@ -19,6 +19,58 @@ data Peca = Pec TipusPeca Color
 mostrarColor :: Color -> Char -> Char
 mostrarColor x c = if (x == Negre) then toLower c else c
 
+-- Retorna els caràcters a mostrar per pantalla d'acord
+-- amb la peça passada per paràmetre.
+mostraPeca :: Peca -> Char
+mostraPeca (Pec tipus color)
+   | (tipus == Rei) = mostrarColor color 'R'
+   | (tipus == Reina) = mostrarColor color 'D'
+   | (tipus == Torre) = mostrarColor color 'T'
+   | (tipus == Alfil) = mostrarColor color 'A'
+   | (tipus == Cavall) = mostrarColor color 'C'
+   | otherwise = mostrarColor color 'P'
+
+taulerInicial = unlines ["tcadract"
+                        ,"pppppppp"
+                        ,"        "
+                        ,"        "
+                        ,"        "
+                        ,"        "
+                        ,"PPPPPPPP"
+                        ,"TCADRACT"]
+
+-- Retorna una casella d'acord amb el caràcter passat
+-- per paràmetre.
+llegirCasella :: Char -> Casella
+llegirCasella ' ' = Nothing
+llegirCasella c = Just (llegirPeca c)
+
+-- Retorna una peça d'acord amb el caràcter passat
+-- per paràmetre.
+llegirPeca :: Char -> Peca
+llegirPeca p = do
+    let color = if(isUpper p) then Blanc else Negre
+    let x = toUpper p
+    if (x == 'P') then (Pec Peo color)
+    else if (x == 'T') then (Pec Torre color)
+    else if (x == 'C') then (Pec Cavall color)
+    else if (x == 'A') then (Pec Alfil color)
+    else if (x == 'D') then (Pec Reina color)
+    else (Pec Rei color)
+
+-- Retorna un tauler d'acord amb la cadena passada
+-- per paràmetre.
+llegirTauler :: String -> Tauler
+llegirTauler = map llegirFila . lines
+    where llegirFila = map llegirCasella
+
+-- Mostra el tauler per pantalla.
+mostraTauler :: Tauler -> IO()
+mostraTauler x = putStr(board2str x) where
+    board2str :: Tauler -> String
+    board2str = unlines . map mostraFila
+        where mostraFila x = map mostraCasella x
+
 instance Show Peca where
     show (Pec tipus color)
         | (tipus == Rei) = show (mostrarColor color 'R')
@@ -46,8 +98,9 @@ instance Show Jugada where
 
 data Casella = Cas Posicio (Maybe Peca)
 
-instance Show Casella where
-    show (Cas _ (Just p)) = show p
+mostraCasella :: Casella -> Char
+mostraCasella (Cas _ Nothing) = ' '
+mostraCasella (Cas _ (Just c)) = mostraPeca c
 
 -- Tauler
 
