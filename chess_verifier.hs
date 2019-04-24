@@ -13,8 +13,54 @@ data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
 
 data Peca = Pec TipusPeca Color
 
+mostraPeca :: Peca -> Char
+mostraPeca (Pec tipus color)
+   | (tipus == Rei) = mostrarColor color 'R'
+   | (tipus == Reina) = mostrarColor color 'D'
+   | (tipus == Torre) = mostrarColor color 'T'
+   | (tipus == Alfil) = mostrarColor color 'A'
+   | (tipus == Cavall) = mostrarColor color 'C'
+   | otherwise = mostrarColor color 'P'
+
 mostrarColor :: Color -> Char -> Char
 mostrarColor x c = if (x == Negre) then toLower c else c
+
+taulerInicial = unlines ["tcadract"
+                        ,"pppppppp"
+                        ,"        "
+                        ,"        "
+                        ,"        "
+                        ,"        "
+                        ,"PPPPPPPP"
+                        ,"TCADRACT"]
+
+llegirCasella :: Char -> Casella
+llegirCasella ' ' = Nothing
+llegirCasella c = Just (llegirPeca c)
+
+llegirPeca :: Char -> Peca
+llegirPeca p = do
+    let color = if(isUpper p) then Blanc else Negre
+    let x = toUpper p
+    if (x == 'P') then (Pec Peo color)
+    else if (x == 'T') then (Pec Torre color)
+    else if (x == 'C') then (Pec Cavall color)
+    else if (x == 'A') then (Pec Alfil color)
+    else if (x == 'D') then (Pec Reina color)
+    else (Pec Rei color)
+
+llegirTauler :: String -> Board
+llegirTauler = map llegirFila . lines
+    where llegirFila = map llegirCasella
+ 
+mostraTauler :: Board -> IO()
+mostraTauler x = putStr(board2str x) where
+    board2str :: Board -> String
+    board2str = unlines . map mostraFila
+        where mostraFila x = map mostraCasella x
+
+getAt :: Board -> Int -> Int -> Casella
+getAt rows idy idx = rows !! idy !! idx
 
 instance Show Peca where
     show (Pec tipus color)
@@ -35,9 +81,14 @@ data Jugada = Jug Peca Posicio Posicio
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
 
-data Casella = Peca | Buida
+type Casella = Maybe Peca
+mostraCasella :: Casella -> Char
+mostraCasella Nothing = ' '
+mostraCasella (Just c) = mostraPeca c
 
 data Tauler = Tau [[Casella]] Color
+
+type Board = [[Casella]]
 
 instance Show Tauler where
     show (Tau (x : xs) c) = show "abc"
@@ -144,6 +195,7 @@ generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f)
         segCas = f a
         valida = (posicioValida segCas) && (segCas /= b)
 
+-- No funciona per algun problema de sintaxi, el concepte en sí està bé
 posicionsEntre :: Posicio -> Posicio -> [Posicio]
 posicionsEntre a b
     | compFila == 0 =
