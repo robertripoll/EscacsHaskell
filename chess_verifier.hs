@@ -1,18 +1,26 @@
--- CLASSES:
---      Peça
---      Tauler
---      Partida
---      Jugada
---      Posició
-
 import Data.Char
+
+-- TIPUS DE DADES I INSTANCES
+
+-- Color
 
 data Color = Blanc | Negre deriving Eq
 
+-- TipusPeça
+
 data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
+
+-- Peça
 
 data Peca = Pec TipusPeca Color
 
+-- Si el color passat per paràmetre és "Negre", es
+-- retorna el caràcter passat per paràmetre a minúscules.
+mostrarColor :: Color -> Char -> Char
+mostrarColor x c = if (x == Negre) then toLower c else c
+
+-- Retorna els caràcters a mostrar per pantalla d'acord
+-- amb la peça passada per paràmetre.
 mostraPeca :: Peca -> Char
 mostraPeca (Pec tipus color)
    | (tipus == Rei) = mostrarColor color 'R'
@@ -21,9 +29,6 @@ mostraPeca (Pec tipus color)
    | (tipus == Alfil) = mostrarColor color 'A'
    | (tipus == Cavall) = mostrarColor color 'C'
    | otherwise = mostrarColor color 'P'
-
-mostrarColor :: Color -> Char -> Char
-mostrarColor x c = if (x == Negre) then toLower c else c
 
 taulerInicial = unlines ["tcadract"
                         ,"pppppppp"
@@ -34,10 +39,14 @@ taulerInicial = unlines ["tcadract"
                         ,"PPPPPPPP"
                         ,"TCADRACT"]
 
+-- Retorna una casella d'acord amb el caràcter passat
+-- per paràmetre.
 llegirCasella :: Char -> Casella
 llegirCasella ' ' = Nothing
 llegirCasella c = Just (llegirPeca c)
 
+-- Retorna una peça d'acord amb el caràcter passat
+-- per paràmetre.
 llegirPeca :: Char -> Peca
 llegirPeca p = do
     let color = if(isUpper p) then Blanc else Negre
@@ -49,18 +58,18 @@ llegirPeca p = do
     else if (x == 'D') then (Pec Reina color)
     else (Pec Rei color)
 
-llegirTauler :: String -> Board
+-- Retorna un tauler d'acord amb la cadena passada
+-- per paràmetre.
+llegirTauler :: String -> Tauler
 llegirTauler = map llegirFila . lines
     where llegirFila = map llegirCasella
- 
-mostraTauler :: Board -> IO()
+
+-- Mostra el tauler per pantalla.
+mostraTauler :: Tauler -> IO()
 mostraTauler x = putStr(board2str x) where
-    board2str :: Board -> String
+    board2str :: Tauler -> String
     board2str = unlines . map mostraFila
         where mostraFila x = map mostraCasella x
-
-getAt :: Board -> Int -> Int -> Casella
-getAt rows idy idx = rows !! idy !! idx
 
 instance Show Peca where
     show (Pec tipus color)
@@ -71,27 +80,38 @@ instance Show Peca where
         | (tipus == Cavall) = show (mostrarColor color 'C')
         | otherwise = show (mostrarColor color 'P')
 
+-- Posició
+
 data Posicio = Char :/ Int deriving Eq
 
 instance Show Posicio where
     show (fila :/ col) = show fila ++ show col
+
+-- Jugada
 
 data Jugada = Jug Peca Posicio Posicio
 
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
 
-type Casella = Maybe Peca
+-- Casella
+
+data Casella = Cas Posicio (Maybe Peca)
+
 mostraCasella :: Casella -> Char
-mostraCasella Nothing = ' '
-mostraCasella (Just c) = mostraPeca c
+mostraCasella (Cas _ Nothing) = ' '
+mostraCasella (Cas _ (Just c)) = mostraPeca c
 
-data Tauler = Tau [[Casella]] Color
+-- Tauler
 
-type Board = [[Casella]]
+type Tauler = [[Casella]]
 
-instance Show Tauler where
-    show (Tau (x : xs) c) = show "abc"
+-- Partida
+
+data Partida = Par Tauler Color
+
+
+-- "VARIABLES" PER FER PROVES
 
 rei :: Peca
 rei = Pec Rei Blanc
@@ -108,94 +128,175 @@ torre = Pec Torre Negre
 alfil :: Peca
 alfil = Pec Alfil Negre
 
+peo :: Peca
+peo = Pec Peo Blanc
+
 posA :: Posicio
-posA = 'a' :/ 5
+posA = 'g' :/ 5
 
 posB :: Posicio
 posB = 'c' :/ 3
 
-unTauler :: Tauler
-unTauler = Tau [[]] Blanc
+posC :: Posicio
+posC = 'a' :/ 3
+
+casA :: Casella
+casA = Cas posA (Just peo)
+
+casB :: Casella
+casB = Cas posB (Just torre)
+
+casC :: Casella
+casC = Cas posC Nothing
 
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
 
+unTauler :: Tauler
+unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casC]
+
+
+-- MÈTODES
+
+-- Retorna cert si la casella rebuda correspon a la mateixa
+-- posició passada per paràmetre; fals altrament.
+esCasella :: Posicio -> Casella -> Bool
+esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
+
+-- Retorna la casella del tauler que té la posició passada
+-- per paràmetre. Si la posició no existeix retorna error.
+trobarCasella :: Tauler -> Posicio -> Maybe Peca
+trobarCasella ll p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
+    where
+        trobat = (filter (esCasella p) ll)
+        peca (Cas _ x) = x
+
+-- Retorna la fila d'una posició.
 fila :: Posicio -> Int
 fila (_ :/ x) = x
 
+-- Retorna la columna d'una posició.
 columna :: Posicio -> Char
 columna (x :/ _) = x
 
-compararFila :: Posicio -> Posicio -> Int
-compararFila (_ :/ fa) (_ :/ fb)
-    | fa == fb = 0
-    | fa < fb = -1
-    | otherwise = 1
-
-compararColumna :: Posicio -> Posicio -> Int
-compararColumna (ca :/ _) (cb :/ _)
-    | ca == cb = 0
-    | (ord ca) < (ord cb) = -1
-    | otherwise = 1
-
+-- Retorna cert si la posició passada per paràmetre
+-- és vàlida (no surt fora del rang del tauler); fals
+-- altrament.
 posicioValida :: Posicio -> Bool
 posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
 
+-- Retorna el desplaçament una posició més adalt 
+-- de la posició passada per paràmetre.
 posicioUp :: Posicio -> Posicio
 posicioUp (col :/ fila) = col :/ (fila + 1)
 
+-- Retorna el desplaçament una posició més abaix 
+-- de la posició passada per paràmetre.
 posicioDown :: Posicio -> Posicio
 posicioDown (col :/ fila) = col :/ (fila - 1)
 
+-- Retorna el desplaçament una posició més a la dreta 
+-- de la posició passada per paràmetre.
 posicioRight :: Posicio -> Posicio
 posicioRight (col :/ fila) = (chr (ord col + 1)) :/ fila
 
+-- Retorna el desplaçament una posició més a l'esquerra 
+-- de la posició passada per paràmetre.
 posicioLeft :: Posicio -> Posicio
 posicioLeft (col :/ fila) = (chr (ord col - 1)) :/ fila
 
+-- Retorna el desplaçament una posició més a la diagonal
+-- superior esquerra de la posició passada per paràmetre.
 posicioDiagSupEsq :: Posicio -> Posicio
 posicioDiagSupEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila + 1)
 
+-- Retorna el desplaçament una posició més a la diagonal
+-- superior dreta de la posició passada per paràmetre.
 posicioDiagSupDreta :: Posicio -> Posicio
 posicioDiagSupDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila + 1)
 
+-- Retorna el desplaçament una posició més a la diagonal
+-- inferior esquerra de la posició passada per paràmetre.
 posicioDiagInfEsq :: Posicio -> Posicio
 posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 
+-- Retorna el desplaçament una posició més a la diagonal
+-- inferior dreta de la posició passada per paràmetre.
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
 
--- Retorna el resultat d'aplicar 
+-- Aplica una funció passada per paràmetre a una posició
+-- passada per paràmetre, i retorna el resultat d'aplicar
+-- la funció a la posició, de tornar a aplicar la funció
+-- al previ resultat i així successivament fins trobar una
+-- posició no vàlida. 
 aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
 aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
     where
         aplic = f x
         valida = posicioValida aplic
 
+-- Desplaça les columnes i/o files d'una posició passada
+-- per paràmetre en un nombre determinat d'unitats, també
+-- passats per paràmetre.
 sumaCoords :: Posicio -> Int -> Int -> Posicio
 sumaCoords (col :/ fila) x y = ((chr (ord col + x)) :/ (fila + y))
 
+-- Genera els moviments (vàlids o no) que pot fer un tipus
+-- de peça trobant-se en una posició concreta.
 generarMoviments :: TipusPeca -> Posicio -> [Posicio]
-generarMoviments x p
-   | x == Peo = [posicioUp p, posicioDiagSupEsq p, posicioDiagSupDreta p, posicioUp (posicioUp p)]
-   | x == Cavall = [sumaCoords p 1 2, sumaCoords p 2 1, sumaCoords p 2 (-1), sumaCoords p 1 (-2), 
-                    sumaCoords p (-1) 2, sumaCoords p (-2) 1, sumaCoords p (-2) (-1), sumaCoords p (-1) (-2)]
-   | x == Alfil = (aplicarFunc posicioDiagSupEsq p) ++ (aplicarFunc posicioDiagSupDreta p) ++ (aplicarFunc posicioDiagInfEsq p) ++ (aplicarFunc posicioDiagInfDreta p)
-   | x == Torre = (aplicarFunc posicioUp p) ++ (aplicarFunc posicioRight p) ++ (aplicarFunc posicioDown p) ++ (aplicarFunc posicioLeft p)
-   | x == Reina = (aplicarFunc posicioUp p) ++ (aplicarFunc posicioRight p) ++ (aplicarFunc posicioDown p) ++ (aplicarFunc posicioLeft p) ++ (aplicarFunc posicioDiagSupEsq p) ++ (aplicarFunc posicioDiagSupDreta p) ++ (aplicarFunc posicioDiagInfEsq p) ++ (aplicarFunc posicioDiagInfDreta p)
-   | otherwise = [posicioUp p, posicioDiagSupDreta p, posicioRight p, posicioDiagInfDreta p, posicioDown p, posicioDiagInfEsq p, posicioLeft p, posicioDiagSupEsq p] -- Cas del Rei
+generarMoviments t pos
+   | t == Peo = [posicioUp pos, posicioDiagSupEsq pos, posicioDiagSupDreta pos, posicioUp (posicioUp pos)]
+   | t == Cavall = [sumaCoords pos 1 2, sumaCoords pos 2 1, sumaCoords pos 2 (-1), sumaCoords pos 1 (-2), 
+                    sumaCoords pos (-1) 2, sumaCoords pos (-2) 1, sumaCoords pos (-2) (-1), sumaCoords pos (-1) (-2)]
+   | t == Alfil = (aplicarFunc posicioDiagSupEsq pos) ++ (aplicarFunc posicioDiagSupDreta pos) ++ (aplicarFunc posicioDiagInfEsq pos) ++
+                  (aplicarFunc posicioDiagInfDreta pos)
+   | t == Torre = (aplicarFunc posicioUp pos) ++ (aplicarFunc posicioRight pos) ++ (aplicarFunc posicioDown pos) ++ (aplicarFunc posicioLeft pos)
+   | t == Reina = (aplicarFunc posicioUp pos) ++ (aplicarFunc posicioRight pos) ++ (aplicarFunc posicioDown pos) ++ (aplicarFunc posicioLeft pos) ++
+                  (aplicarFunc posicioDiagSupEsq pos) ++ (aplicarFunc posicioDiagSupDreta pos) ++ (aplicarFunc posicioDiagInfEsq pos) ++
+                  (aplicarFunc posicioDiagInfDreta pos)
+   | otherwise = [posicioUp pos, posicioDiagSupDreta pos, posicioRight pos, posicioDiagInfDreta pos, posicioDown pos, posicioDiagInfEsq pos, posicioLeft pos, posicioDiagSupEsq pos] -- Cas del Rei
 
--- En aquesta funció sobraria el filter posicioValida per "Alfil", "Torre", "Reina"
+-- Retorna els moviments possibles que pot fer una peça
+-- des d'una posició concreta.
 moviment :: Peca -> Posicio -> [Posicio]
-moviment (Pec tipus _) p = filter (posicioValida) (generarMoviments tipus p)
+moviment (Pec t _) pos = if (t == Peo || t == Cavall || t == Rei) then filter (posicioValida) mov else mov
+    where
+        mov = generarMoviments t pos
 
+-- Compara la fila de dos posicions passades per paràmetre:
+-- si les files són iguals retorna 0, si la fila de la
+-- posició A és inferior a la de la posició B retorna -1, i
+-- si la posició A és superior a la de la posició B retorna 1.
+compararFila :: Posicio -> Posicio -> Int
+compararFila (_ :/ fa) (_ :/ fb)
+    | fa == fb = 0
+    | fa < fb = -1
+    | otherwise = 1
+
+-- Compara la columna de dos posicions passades per paràmetre:
+-- si les columnes són iguals retorna 0, si la columna de la
+-- posició A és inferior a la de la posició B retorna -1, i
+-- si la posició A és superior a la de la posició B retorna 1.
+compararColumna :: Posicio -> Posicio -> Int
+compararColumna (ca :/ _) (cb :/ _)
+    | ca == cb = 0
+    | (ord ca) < (ord cb) = -1
+    | otherwise = 1
+
+-- Retorna les posicions dins d'un interval passat per
+-- paràmetre (posA, posB) aplicant una funció passada
+-- per paràmetre. Dins d'aquesta llista de posicions
+-- s'exclouen tant posA com posB.
 generarPosicions :: Posicio -> Posicio -> (Posicio -> Posicio) -> [Posicio]
 generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f) else []
     where
         segCas = f a
         valida = (posicioValida segCas) && (segCas /= b)
 
--- No funciona per algun problema de sintaxi, el concepte en sí està bé
+-- Retorna les posicions dins d'un interval passat per
+-- paràmetre (posA, posB). Dins d'aquesta llista de
+-- posicions s'exclouen tant posA com posB.
 posicionsEntre :: Posicio -> Posicio -> [Posicio]
 posicionsEntre a b
     | compFila == 0 =
