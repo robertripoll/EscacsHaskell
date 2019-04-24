@@ -1,4 +1,5 @@
 import Data.Char
+import Data.Maybe
 
 -- TIPUS DE DADES I INSTANCES
 
@@ -42,8 +43,8 @@ taulerInicial = unlines ["tcadract"
 -- Retorna una casella d'acord amb el caràcter passat
 -- per paràmetre.
 llegirCasella :: Char -> Casella
-llegirCasella ' ' = Nothing
-llegirCasella c = Just (llegirPeca c)
+llegirCasella ' ' = Cas ('z' :/ 9) Nothing
+llegirCasella c = Cas ('z' :/ 9) (Just (llegirPeca c))
 
 -- Retorna una peça d'acord amb el caràcter passat
 -- per paràmetre.
@@ -60,16 +61,16 @@ llegirPeca p = do
 
 -- Retorna un tauler d'acord amb la cadena passada
 -- per paràmetre.
-llegirTauler :: String -> Tauler
-llegirTauler = map llegirFila . lines
-    where llegirFila = map llegirCasella
+--llegirTauler :: String -> Tauler
+--llegirTauler = map llegirFila . lines
+--    where llegirFila = map llegirCasella
 
 -- Mostra el tauler per pantalla.
-mostraTauler :: Tauler -> IO()
-mostraTauler x = putStr(board2str x) where
-    board2str :: Tauler -> String
-    board2str = unlines . map mostraFila
-        where mostraFila x = map mostraCasella x
+--mostraTauler :: Tauler -> IO()
+--mostraTauler x = putStr(board2str x) where
+--    board2str :: Tauler -> String
+--    board2str = unlines . map mostraFila
+--        where mostraFila x = map mostraCasella x
 
 instance Show Peca where
     show (Pec tipus color)
@@ -158,16 +159,12 @@ unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, ca
 
 -- MÈTODES
 
--- Retorna cert si la casella rebuda correspon a la mateixa
--- posició passada per paràmetre; fals altrament.
-esCasella :: Posicio -> Casella -> Bool
-esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
-
 -- Retorna la casella del tauler que té la posició passada
 -- per paràmetre. Si la posició no existeix retorna error.
 trobarCasella :: Tauler -> Posicio -> Maybe Peca
 trobarCasella ll p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
     where
+        esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
         trobat = (filter (esCasella p) ll)
         peca (Cas _ x) = x
 
@@ -333,14 +330,10 @@ posicionsEntre a b
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
-casellaLliure t p = True
-
-existeixElem :: Eq a => a -> [a] -> Bool
-existeixElem a [] = False
-existeixElem a (x : xs) = if (a == x) then True else existeixElem a xs
+casellaLliure t p = isNothing (trobarCasella t p)
 
 jugadaLegal :: Tauler -> Jugada -> Bool
-jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (existeixElem x1 (moviment (Pec tipus c) x0))
+jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (elem x1 (moviment (Pec tipus c) x0))
 
 --escacMat :: Tauler -> Color -> Bool
 --escacMat t c = False
