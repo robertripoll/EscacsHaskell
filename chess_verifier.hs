@@ -104,7 +104,7 @@ mostraCasella (Cas _ (Just c)) = mostraPeca c
 
 -- Tauler
 
-type Tauler = [[Casella]]
+type Tauler = [Casella]
 
 -- Partida
 
