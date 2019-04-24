@@ -162,11 +162,16 @@ unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, ca
 -- Retorna la casella del tauler que té la posició passada
 -- per paràmetre. Si la posició no existeix retorna error.
 trobarCasella :: Tauler -> Posicio -> Maybe Peca
-trobarCasella ll p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
+trobarCasella t p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
     where
         esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
-        trobat = (filter (esCasella p) ll)
+        trobat = (filter (esCasella p) t)
         peca (Cas _ x) = x
+
+-- Retorna un conjunt de caselles que tenen la posició passada
+-- per paràmetre. Si alguna de les posicions no existeix, retorna error.
+trobarCaselles :: Tauler -> [Posicio] -> [Maybe Peca]
+trobarCaselles t (p : ps) = (trobarCasella t p) : (trobarCaselles t ps)
 
 -- Retorna la fila d'una posició.
 fila :: Posicio -> Int
@@ -318,9 +323,13 @@ posicionsEntre a b
         compFila = compararFila a b
         compCol = compararColumna a b
 
--- Ens fa falta una funció que accedeixi a una posició concreta del tauler...
---alguEntre :: Tauler -> Posicio -> Posicio -> Bool
---alguEntre t p q = posicionsEntre p q
+-- Retorna cert si hi ha alguna peça entre dues posicions
+-- passades per paràmetre; fals altrament.
+alguEntre :: Tauler -> Posicio -> Posicio -> Bool
+alguEntre t p q = algunaOcupada caselles
+    where
+        caselles = trobarCaselles t (posicionsEntre p q)
+        algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
 --fesJugada :: Tauler -> Jugada -> Tauler
 --fesJugada t j = t
