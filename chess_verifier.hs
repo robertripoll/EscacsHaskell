@@ -338,6 +338,7 @@ alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 alguEntre t p q = algunaOcupada caselles
     where
         caselles = trobarPeces t (posicionsEntre p q)
+        algunaOcupada [] = False
         algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
 aplicarJugada :: Tauler -> Jugada -> Bool -> [(Posicio, Peca)]
