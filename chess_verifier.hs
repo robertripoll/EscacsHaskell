@@ -37,19 +37,10 @@ mostraPeca (Pec tipus color)
    | (tipus == Cavall) = mostrarColor color 'C'
    | otherwise = mostrarColor color 'P'
 
-taulerInicial = unlines ["tcadract"
-                        ,"pppppppp"
-                        ,"        "
-                        ,"        "
-                        ,"        "
-                        ,"        "
-                        ,"PPPPPPPP"
-                        ,"TCADRACT"]
-
--- Retorna una casella d'acord amb el caràcter passat
--- per paràmetre.
-llegirCasella :: Char -> Casella
-llegirCasella c = (('z' :/ 9), llegirPeca c)
+taulerInicial = Tau [(('a' :/ 1), (Pec Torre Blanc)), (('b' :/ 1), (Pec Cavall Blanc)), (('c' :/ 1), (Pec Alfil Blanc)), (('d' :/ 1), (Pec Reina Blanc)), (('e' :/ 1), (Pec Rei Blanc)), (('f' :/ 1), (Pec Alfil Blanc)), (('g' :/ 1), (Pec Cavall Blanc)), (('h' :/ 1), (Pec Torre Blanc)),
+                      (('a' :/ 8), (Pec Torre Negre)), (('b' :/ 8), (Pec Cavall Negre)), (('c' :/ 8), (Pec Alfil Negre)), (('d' :/ 8), (Pec Reina Negre)), (('e' :/ 8), (Pec Rei Negre)), (('f' :/ 8), (Pec Alfil Negre)), (('g' :/ 8), (Pec Cavall Negre)), (('h' :/ 8), (Pec Torre Negre)),
+                      (('a' :/ 2), (Pec Peo Blanc)), (('b' :/ 2), (Pec Peo Blanc)), (('c' :/ 2), (Pec Peo Blanc)), (('d' :/ 2), (Pec Peo Blanc)), (('e' :/ 2), (Pec Peo Blanc)), (('f' :/ 2), (Pec Peo Blanc)), (('g' :/ 2), (Pec Peo Blanc)), (('h' :/ 2), (Pec Peo Blanc)),
+                      (('a' :/ 7), (Pec Peo Negre)), (('b' :/ 7), (Pec Peo Negre)), (('c' :/ 7), (Pec Peo Negre)), (('d' :/ 7), (Pec Peo Negre)), (('e' :/ 7), (Pec Peo Negre)), (('f' :/ 7), (Pec Peo Negre)), (('g' :/ 7), (Pec Peo Negre)), (('h' :/ 7), (Pec Peo Negre))]
 
 -- Retorna una peça d'acord amb el caràcter passat
 -- per paràmetre.
@@ -64,19 +55,35 @@ llegirPeca p = do
     else if (x == 'D') then (Pec Reina color)
     else (Pec Rei color)
 
--- Retorna un tauler d'acord amb la cadena passada
--- per paràmetre.
---llegirTauler :: String -> Tauler
---llegirTauler = map llegirFila . lines
---    where llegirFila = map llegirCasella
 
--- Mostra el tauler per pantalla.
---mostraTauler :: Tauler -> IO()
---mostraTauler x = putStr(board2str x) where
---    board2str :: Tauler -> String
---    board2str = unlines . map mostraFila
---        where mostraFila x = map mostraCasella x
+ferPos :: (Int,Int) -> Posicio
+ferPos (x,y) = (chr x :/ y)
 
+mostraTauler :: Tauler -> IO()
+mostraTauler t = do
+    let tauler = taulerToString t
+    putStrLn("   ============")
+    putStrLn("8- | " ++ take 8 (drop 56 tauler) ++ " |")
+    putStrLn("7- | " ++ take 8 (drop 48 tauler) ++ " |")
+    putStrLn("6- | " ++ take 8 (drop 40 tauler) ++ " |")
+    putStrLn("5- | " ++ take 8 (drop 32 tauler) ++ " |")
+    putStrLn("4- | " ++ take 8 (drop 24 tauler) ++ " |")
+    putStrLn("3- | " ++ take 8 (drop 16 tauler) ++ " |")
+    putStrLn("2- | " ++ take 8 (drop 8 tauler) ++ " |")
+    putStrLn("1- | " ++ take 8 tauler ++ " |")
+    putStrLn("   ============")
+    putStrLn("     abcdefgh")
+
+
+taulerToString :: Tauler -> String
+taulerToString t = _m(trobarPeces t pos) where
+        list = [(x,y) | y <- [1..8], x <- [ord 'a'.. ord 'h']] 
+        pos = map ferPos list
+        _m [] = []
+        _m (x:xs)
+            | x == Nothing = "." ++ _m xs
+            | otherwise = [mostraPeca (fromJust x)] ++ _m xs
+    
 instance Show Peca where
     show (Pec tipus color)
         | (tipus == Rei) = show (mostrarColor color 'R')
@@ -154,10 +161,6 @@ casB = (posB, torre)
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
 
-unTauler :: Tauler
-unTauler = Tau [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casB]
-
-
 -- MÈTODES
 
 -- Retorna la peça ("Just Peça") del tauler que té la posició passada
@@ -172,6 +175,7 @@ trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0
 -- Retorna un conjunt de caselles que tenen la posició passada
 -- per paràmetre. Si alguna de les posicions no existeix, retorna error.
 trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
+trobarPeces t [] = []
 trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
 
 -- Retorna la fila d'una posició.
