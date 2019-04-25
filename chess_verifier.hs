@@ -13,7 +13,13 @@ data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
 
 -- Peça
 
-data Peca = Pec TipusPeca Color
+data Peca = Pec TipusPeca Color deriving Eq
+
+tipusPeca :: Peca -> TipusPeca
+tipusPeca (Pec t _) = t
+
+colorPeca :: Peca -> Color
+colorPeca (Pec _ c) = c
 
 -- Si el color passat per paràmetre és "Negre", es
 -- retorna el caràcter passat per paràmetre a minúscules.
@@ -31,20 +37,10 @@ mostraPeca (Pec tipus color)
    | (tipus == Cavall) = mostrarColor color 'C'
    | otherwise = mostrarColor color 'P'
 
-taulerInicial = unlines ["tcadract"
-                        ,"pppppppp"
-                        ,"        "
-                        ,"        "
-                        ,"        "
-                        ,"        "
-                        ,"PPPPPPPP"
-                        ,"TCADRACT"]
-
--- Retorna una casella d'acord amb el caràcter passat
--- per paràmetre.
-llegirCasella :: Char -> Casella
-llegirCasella ' ' = Cas ('z' :/ 9) Nothing
-llegirCasella c = Cas ('z' :/ 9) (Just (llegirPeca c))
+taulerInicial =  Tau [(('a' :/ 1), (Pec Torre Blanc)), (('b' :/ 1), (Pec Cavall Blanc)), (('c' :/ 1), (Pec Alfil Blanc)), (('d' :/ 1), (Pec Reina Blanc)), (('e' :/ 1), (Pec Rei Blanc)), (('f' :/ 1), (Pec Alfil Blanc)), (('g' :/ 1), (Pec Cavall Blanc)), (('h' :/ 1), (Pec Torre Blanc)),
+                      (('a' :/ 8), (Pec Torre Negre)), (('b' :/ 8), (Pec Cavall Negre)), (('c' :/ 8), (Pec Alfil Negre)), (('d' :/ 8), (Pec Reina Negre)), (('e' :/ 8), (Pec Rei Negre)), (('f' :/ 8), (Pec Alfil Negre)), (('g' :/ 8), (Pec Cavall Negre)), (('h' :/ 8), (Pec Torre Negre)),
+                      (('a' :/ 2), (Pec Peo Blanc)), (('b' :/ 2), (Pec Peo Blanc)), (('c' :/ 2), (Pec Peo Blanc)), (('d' :/ 2), (Pec Peo Blanc)), (('e' :/ 2), (Pec Peo Blanc)), (('f' :/ 2), (Pec Peo Blanc)), (('g' :/ 2), (Pec Peo Blanc)), (('h' :/ 2), (Pec Peo Blanc)),
+                      (('a' :/ 7), (Pec Peo Negre)), (('b' :/ 7), (Pec Peo Negre)), (('c' :/ 7), (Pec Peo Negre)), (('d' :/ 7), (Pec Peo Negre)), (('e' :/ 7), (Pec Peo Negre)), (('f' :/ 7), (Pec Peo Negre)), (('g' :/ 7), (Pec Peo Negre)), (('h' :/ 7), (Pec Peo Negre))] 
 
 -- Retorna una peça d'acord amb el caràcter passat
 -- per paràmetre.
@@ -59,19 +55,33 @@ llegirPeca p = do
     else if (x == 'D') then (Pec Reina color)
     else (Pec Rei color)
 
--- Retorna un tauler d'acord amb la cadena passada
--- per paràmetre.
---llegirTauler :: String -> Tauler
---llegirTauler = map llegirFila . lines
---    where llegirFila = map llegirCasella
 
--- Mostra el tauler per pantalla.
---mostraTauler :: Tauler -> IO()
---mostraTauler x = putStr(board2str x) where
---    board2str :: Tauler -> String
---    board2str = unlines . map mostraFila
---        where mostraFila x = map mostraCasella x
+ferPos :: (Int,Int) -> Posicio
+ferPos (x,y) = (chr x :/ y)
 
+mostraTauler :: Tauler -> IO()
+mostraTauler t = do
+    let tauler = taulerToString t
+    putStrLn("   ============")
+    putStrLn("8- | " ++ take 8 (drop 56 tauler) ++ " |")
+    putStrLn("7- | " ++ take 8 (drop 48 tauler) ++ " |")
+    putStrLn("6- | " ++ take 8 (drop 40 tauler) ++ " |")
+    putStrLn("5- | " ++ take 8 (drop 32 tauler) ++ " |")
+    putStrLn("4- | " ++ take 8 (drop 24 tauler) ++ " |")
+    putStrLn("3- | " ++ take 8 (drop 16 tauler) ++ " |")
+    putStrLn("2- | " ++ take 8 (drop 8 tauler) ++ " |")
+    putStrLn("1- | " ++ take 8 tauler ++ " |")
+    putStrLn("   ============")
+
+taulerToString :: Tauler -> String
+taulerToString t = _m(trobarPeces t pos) where
+        list = [(x,y) | y <- [1..8], x <- [ord 'a'.. ord 'h']] 
+        pos = map ferPos list
+        _m [] = []
+        _m (x:xs)
+            | x == Nothing = "." ++ _m xs
+            | otherwise = [mostraPeca (fromJust x)] ++ _m xs
+    
 instance Show Peca where
     show (Pec tipus color)
         | (tipus == Rei) = show (mostrarColor color 'R')
@@ -97,15 +107,14 @@ instance Show Jugada where
 
 -- Casella
 
-data Casella = Cas Posicio (Maybe Peca)
+type Casella = (Posicio, Peca)
 
 mostraCasella :: Casella -> Char
-mostraCasella (Cas _ Nothing) = ' '
-mostraCasella (Cas _ (Just c)) = mostraPeca c
+mostraCasella (_, p) = mostraPeca p
 
 -- Tauler
 
-type Tauler = [Casella]
+data Tauler = Tau [(Posicio, Peca)]
 
 -- Partida
 
@@ -142,36 +151,34 @@ posC :: Posicio
 posC = 'a' :/ 3
 
 casA :: Casella
-casA = Cas posA (Just peo)
+casA = (posA, peo)
 
 casB :: Casella
-casB = Cas posB (Just torre)
-
-casC :: Casella
-casC = Cas posC Nothing
+casB = (posB, torre)
 
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
 
-unTauler :: Tauler
-unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casC]
 
+unTauler :: Tauler
+unTauler = Tau [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casB]
 
 -- MÈTODES
 
--- Retorna la casella del tauler que té la posició passada
--- per paràmetre. Si la posició no existeix retorna error.
-trobarCasella :: Tauler -> Posicio -> Maybe Peca
-trobarCasella t p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
+-- Retorna la peça ("Just Peça") del tauler que té la posició passada
+-- per paràmetre. Si la posició no existeix retorna "Nothing".
+trobarPeca :: Tauler -> Posicio -> Maybe Peca
+trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0))
     where
-        esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
+        esCasella (pc :/ pf) (p, _) = p == (pc :/ pf)
         trobat = (filter (esCasella p) t)
-        peca (Cas _ x) = x
+        peca (_, x) = x
 
 -- Retorna un conjunt de caselles que tenen la posició passada
 -- per paràmetre. Si alguna de les posicions no existeix, retorna error.
-trobarCaselles :: Tauler -> [Posicio] -> [Maybe Peca]
-trobarCaselles t (p : ps) = (trobarCasella t p) : (trobarCaselles t ps)
+trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
+trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
+trobarPeces t [] = []
 
 -- Retorna la fila d'una posició.
 fila :: Posicio -> Int
@@ -328,21 +335,42 @@ posicionsEntre a b
 alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 alguEntre t p q = algunaOcupada caselles
     where
-        caselles = trobarCaselles t (posicionsEntre p q)
+        caselles = trobarPeces t (posicionsEntre p q)
         algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
---fesJugada :: Tauler -> Jugada -> Tauler
---fesJugada t j = t
+-- fesJugada :: Tauler -> Jugada -> Tauler
+--fesJugada t (Jug tipus x0 x1)  = 
 
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
-casellaLliure t p = isNothing (trobarCasella t p)
+casellaLliure t p = isNothing (trobarPeca t p)
 
+-- Comprovar:
+--  * Casella destí sigui del color contrari (es pugi matar la peça)
+--  * No hi hagi cap peça de per mig 
+--  * El moviment sigui possible (✓)
+--  * Si a la casella origen està la peça que ens passen
 jugadaLegal :: Tauler -> Jugada -> Bool
-jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (elem x1 (moviment (Pec tipus c) x0))
+jugadaLegal t (Jug p x0 x1) =
+    if origenLliure
+        then error "La casella origen de la jugada esta buida"
+        else if origenDiferent
+            then error "La peça de la casella origen no coincideix amb la peça de la jugada"
+            else if pecaPelMig
+                then error "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
+                else if destiMateixJugador
+                    then error "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+                    else True
+    where
+        desti = (trobarPeca t x1)
+        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
+        pecaPelMig = alguEntre t x0 x1
+        origen = (trobarPeca t x0)
+        origenLliure = isNothing origen
+        origenDiferent = (fromJust origen) /= p
 
 --escacMat :: Tauler -> Color -> Bool
 --escacMat t c = False
