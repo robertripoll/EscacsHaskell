@@ -367,7 +367,7 @@ escac :: Tauler -> Color -> Bool
 escac (Tau t) c = elem posRei movimentsContrincant
     where
         posRei = trobarRei (Tau t) c
-        colorContrincant = if (c == Blanc) then Negre else c
+        colorContrincant = if (c == Blanc) then Negre else Blanc
         movimentsContrincant = movimentsColor (Tau t) colorContrincant
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
@@ -385,11 +385,13 @@ jugadaLegal t (Jug p x0 x1) =
         then error "La casella origen de la jugada esta buida"
         else if origenDiferent
             then error "La peça de la casella origen no coincideix amb la peça de la jugada"
-            else if pecaPelMig
-                then error "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
-                else if destiMateixJugador
-                    then error "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
-                    else True
+            else if movimInvalid
+                then error "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
+                else if pecaPelMig
+                    then error "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
+                    else if destiMateixJugador
+                        then error "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+                        else True
     where
         desti = (trobarPeca t x1)
         destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
@@ -397,6 +399,7 @@ jugadaLegal t (Jug p x0 x1) =
         origen = (trobarPeca t x0)
         origenLliure = isNothing origen
         origenDiferent = (fromJust origen) /= p
+        movimInvalid = not (elem x1 (moviment p x0))
 
 -- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
 -- i)   interposició d'una peça entre agresora-agredida
