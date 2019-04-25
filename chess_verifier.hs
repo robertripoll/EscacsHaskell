@@ -13,7 +13,13 @@ data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
 
 -- Peça
 
-data Peca = Pec TipusPeca Color
+data Peca = Pec TipusPeca Color deriving Eq
+
+tipusPeca :: Peca -> TipusPeca
+tipusPeca (Pec t _) = t
+
+colorPeca :: Peca -> Color
+colorPeca (Pec _ c) = c
 
 -- Si el color passat per paràmetre és "Negre", es
 -- retorna el caràcter passat per paràmetre a minúscules.
@@ -43,8 +49,7 @@ taulerInicial = unlines ["tcadract"
 -- Retorna una casella d'acord amb el caràcter passat
 -- per paràmetre.
 llegirCasella :: Char -> Casella
-llegirCasella ' ' = Cas ('z' :/ 9) Nothing
-llegirCasella c = Cas ('z' :/ 9) (Just (llegirPeca c))
+llegirCasella c = (('z' :/ 9), llegirPeca c)
 
 -- Retorna una peça d'acord amb el caràcter passat
 -- per paràmetre.
@@ -97,15 +102,14 @@ instance Show Jugada where
 
 -- Casella
 
-data Casella = Cas Posicio (Maybe Peca)
+type Casella = (Posicio, Peca)
 
 mostraCasella :: Casella -> Char
-mostraCasella (Cas _ Nothing) = ' '
-mostraCasella (Cas _ (Just c)) = mostraPeca c
+mostraCasella (_, p) = mostraPeca p
 
 -- Tauler
 
-type Tauler = [Casella]
+data Tauler = Tau [(Posicio, Peca)]
 
 -- Partida
 
@@ -142,36 +146,33 @@ posC :: Posicio
 posC = 'a' :/ 3
 
 casA :: Casella
-casA = Cas posA (Just peo)
+casA = (posA, peo)
 
 casB :: Casella
-casB = Cas posB (Just torre)
-
-casC :: Casella
-casC = Cas posC Nothing
+casB = (posB, torre)
 
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
 
 unTauler :: Tauler
-unTauler = [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casC]
+unTauler = Tau [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casB]
 
 
 -- MÈTODES
 
--- Retorna la casella del tauler que té la posició passada
--- per paràmetre. Si la posició no existeix retorna error.
-trobarCasella :: Tauler -> Posicio -> Maybe Peca
-trobarCasella t p = if (null trobat) then error "Posició no trobada" else peca (trobat !! 0)
+-- Retorna la peça ("Just Peça") del tauler que té la posició passada
+-- per paràmetre. Si la posició no existeix retorna "Nothing".
+trobarPeca :: Tauler -> Posicio -> Maybe Peca
+trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0))
     where
-        esCasella (pc :/ pf) (Cas p _) = p == (pc :/ pf)
+        esCasella (pc :/ pf) (p, _) = p == (pc :/ pf)
         trobat = (filter (esCasella p) t)
-        peca (Cas _ x) = x
+        peca (_, x) = x
 
 -- Retorna un conjunt de caselles que tenen la posició passada
 -- per paràmetre. Si alguna de les posicions no existeix, retorna error.
-trobarCaselles :: Tauler -> [Posicio] -> [Maybe Peca]
-trobarCaselles t (p : ps) = (trobarCasella t p) : (trobarCaselles t ps)
+trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
+trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
 
 -- Retorna la fila d'una posició.
 fila :: Posicio -> Int
@@ -328,21 +329,72 @@ posicionsEntre a b
 alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 alguEntre t p q = algunaOcupada caselles
     where
-        caselles = trobarCaselles t (posicionsEntre p q)
+        caselles = trobarPeces t (posicionsEntre p q)
         algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
---fesJugada :: Tauler -> Jugada -> Tauler
---fesJugada t j = t
+aplicarJugada :: Tauler -> Jugada -> Bool -> [(Posicio, Peca)]
+aplicarJugada (Tau []) (Jug pj x0 x1) trobat = if (not trobat) then [(x1, pj)] else []
+aplicarJugada (Tau ((p, c) : t)) (Jug pj x0 x1) trobat =
+    if (p == x0)
+        then aplicarJugada (Tau t) (Jug pj x0 x1) trobat
+        else if (p == x1) -- Si això és cert, s'ha capturat una peça de l'adversari (s'ha de comprovar amb una altra funció si la peça de la casella destí és de l'adversari)
+            then [(x1, pj)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) True
+            else [(p, c)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) trobat
 
---escac :: Tauler -> Color -> Bool
---escac t c = False
+fesJugada :: Tauler -> Jugada -> Tauler
+fesJugada t j = Tau (aplicarJugada t j False)
+
+trobarRei :: Tauler -> Color -> Posicio
+trobarRei (Tau (p, (Pec tipus color)) : t) bandol = if (tipus == Rei && color == bandol) then p else trobarRei (Tau t) bandol
+
+pecesDeColor :: [(Posicio, Peca)] -> Color -> [(Posicio, Peca)]
+pecesDeColor [] color = []
+pecesDeColor ((p, (Pec pt pc)) : t) color = if (pc == color) then (p, (Pec pt pc)) : pecesDeColor t color else pecesDeColor t color
+
+moviments :: [(Posicio, Peca)] -> [Posicio]
+moviments [] = []
+moviments ((p, c) : ll) = moviment c p : moviments ll
+
+movimentsColor :: [(Posicio, Peca)] -> Color -> [Posicio]
+movimentsColor t color = moviments (pecesDeColor t color)
+
+escac :: Tauler -> Color -> Bool
+escac t c = elem posRei movimentsContrincant
+    where
+        posRei = trobarRei t c
+        colorContrincant = if (c == Blanc) then Negre else c
+        movimentsContrincant = movimentsColor colorContrincant
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
-casellaLliure t p = isNothing (trobarCasella t p)
+casellaLliure t p = isNothing (trobarPeca t p)
 
+-- Comprovar:
+--  * Casella destí sigui del color contrari (es pugi matar la peça)
+--  * No hi hagi cap peça de per mig 
+--  * El moviment sigui possible (✓)
+--  * Si a la casella origen està la peça que ens passen
 jugadaLegal :: Tauler -> Jugada -> Bool
-jugadaLegal t (Jug (Pec tipus c) x0 x1) = (casellaLliure t x1) && (elem x1 (moviment (Pec tipus c) x0))
+jugadaLegal t (Jug p x0 x1) =
+    if origenLliure
+        then error "La casella origen de la jugada esta buida"
+        else if origenDiferent
+            then error "La peça de la casella origen no coincideix amb la peça de la jugada"
+            else if pecaPelMig
+                then error "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
+                else if destiMateixJugador
+                    then error "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+                    else True
+    where
+        desti = (trobarPeca t x1)
+        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
+        pecaPelMig = alguEntre t x0 x1
+        origen = (trobarPeca t x0)
+        origenLliure = isNothing origen
+        origenDiferent = (fromJust origen) /= p
 
+-- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
+-- i)   interposició d'una peça entre agresora-agredida
+-- ii)  captura de la peça agresora
+-- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
 --escacMat :: Tauler -> Color -> Bool
---escacMat t c = False
