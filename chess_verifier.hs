@@ -72,6 +72,8 @@ mostraTauler t = do
     putStrLn("2- | " ++ take 8 (drop 8 tauler) ++ " |")
     putStrLn("1- | " ++ take 8 tauler ++ " |")
     putStrLn("   ============")
+    putStrLn("     abcdefgh")
+
 
 taulerToString :: Tauler -> String
 taulerToString t = _m(trobarPeces t pos) where
