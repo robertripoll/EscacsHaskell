@@ -337,15 +337,33 @@ aplicarJugada (Tau []) (Jug pj x0 x1) trobat = if (not trobat) then [(x1, pj)] e
 aplicarJugada (Tau ((p, c) : t)) (Jug pj x0 x1) trobat =
     if (p == x0)
         then aplicarJugada (Tau t) (Jug pj x0 x1) trobat
-        else if (p == x1)
+        else if (p == x1) -- Si això és cert, s'ha capturat una peça de l'adversari (s'ha de comprovar amb una altra funció si la peça de la casella destí és de l'adversari)
             then [(x1, pj)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) True
             else [(p, c)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) trobat
 
 fesJugada :: Tauler -> Jugada -> Tauler
 fesJugada t j = Tau (aplicarJugada t j False)
 
---escac :: Tauler -> Color -> Bool
---escac t c = False
+trobarRei :: Tauler -> Color -> Posicio
+trobarRei (Tau (p, (Pec tipus color)) : t) bandol = if (tipus == Rei && color == bandol) then p else trobarRei (Tau t) bandol
+
+pecesDeColor :: [(Posicio, Peca)] -> Color -> [(Posicio, Peca)]
+pecesDeColor [] color = []
+pecesDeColor ((p, (Pec pt pc)) : t) color = if (pc == color) then (p, (Pec pt pc)) : pecesDeColor t color else pecesDeColor t color
+
+moviments :: [(Posicio, Peca)] -> [Posicio]
+moviments [] = []
+moviments ((p, c) : ll) = moviment c p : moviments ll
+
+movimentsColor :: [(Posicio, Peca)] -> Color -> [Posicio]
+movimentsColor t color = moviments (pecesDeColor t color)
+
+escac :: Tauler -> Color -> Bool
+escac t c = elem posRei movimentsContrincant
+    where
+        posRei = trobarRei t c
+        colorContrincant = if (c == Blanc) then Negre else c
+        movimentsContrincant = movimentsColor colorContrincant
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
@@ -375,5 +393,8 @@ jugadaLegal t (Jug p x0 x1) =
         origenLliure = isNothing origen
         origenDiferent = (fromJust origen) /= p
 
+-- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
+-- i)   interposició d'una peça entre agresora-agredida
+-- ii)  captura de la peça agresora
+-- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
 --escacMat :: Tauler -> Color -> Bool
---escacMat t c = False
