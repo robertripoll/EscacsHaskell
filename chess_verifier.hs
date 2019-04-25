@@ -332,8 +332,17 @@ alguEntre t p q = algunaOcupada caselles
         caselles = trobarPeces t (posicionsEntre p q)
         algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
--- fesJugada :: Tauler -> Jugada -> Tauler
---fesJugada t (Jug tipus x0 x1)  = 
+aplicarJugada :: Tauler -> Jugada -> Bool -> [(Posicio, Peca)]
+aplicarJugada (Tau []) (Jug pj x0 x1) trobat = if (not trobat) then [(x1, pj)] else []
+aplicarJugada (Tau ((p, c) : t)) (Jug pj x0 x1) trobat =
+    if (p == x0)
+        then aplicarJugada (Tau t) (Jug pj x0 x1) trobat
+        else if (p == x1)
+            then [(x1, pj)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) True
+            else [(p, c)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) trobat
+
+fesJugada :: Tauler -> Jugada -> Tauler
+fesJugada t j = Tau (aplicarJugada t j False)
 
 --escac :: Tauler -> Color -> Bool
 --escac t c = False
