@@ -37,10 +37,10 @@ mostraPeca (Pec tipus color)
    | (tipus == Cavall) = mostrarColor color 'C'
    | otherwise = mostrarColor color 'P'
 
-taulerInicial =  Tau [(('a' :/ 1), (Pec Torre Blanc)), (('b' :/ 1), (Pec Cavall Blanc)), (('c' :/ 1), (Pec Alfil Blanc)), (('d' :/ 1), (Pec Reina Blanc)), (('e' :/ 1), (Pec Rei Blanc)), (('f' :/ 1), (Pec Alfil Blanc)), (('g' :/ 1), (Pec Cavall Blanc)), (('h' :/ 1), (Pec Torre Blanc)),
+taulerInicial = Tau [(('a' :/ 1), (Pec Torre Blanc)), (('b' :/ 1), (Pec Cavall Blanc)), (('c' :/ 1), (Pec Alfil Blanc)), (('d' :/ 1), (Pec Reina Blanc)), (('e' :/ 1), (Pec Rei Blanc)), (('f' :/ 1), (Pec Alfil Blanc)), (('g' :/ 1), (Pec Cavall Blanc)), (('h' :/ 1), (Pec Torre Blanc)),
                       (('a' :/ 8), (Pec Torre Negre)), (('b' :/ 8), (Pec Cavall Negre)), (('c' :/ 8), (Pec Alfil Negre)), (('d' :/ 8), (Pec Reina Negre)), (('e' :/ 8), (Pec Rei Negre)), (('f' :/ 8), (Pec Alfil Negre)), (('g' :/ 8), (Pec Cavall Negre)), (('h' :/ 8), (Pec Torre Negre)),
                       (('a' :/ 2), (Pec Peo Blanc)), (('b' :/ 2), (Pec Peo Blanc)), (('c' :/ 2), (Pec Peo Blanc)), (('d' :/ 2), (Pec Peo Blanc)), (('e' :/ 2), (Pec Peo Blanc)), (('f' :/ 2), (Pec Peo Blanc)), (('g' :/ 2), (Pec Peo Blanc)), (('h' :/ 2), (Pec Peo Blanc)),
-                      (('a' :/ 7), (Pec Peo Negre)), (('b' :/ 7), (Pec Peo Negre)), (('c' :/ 7), (Pec Peo Negre)), (('d' :/ 7), (Pec Peo Negre)), (('e' :/ 7), (Pec Peo Negre)), (('f' :/ 7), (Pec Peo Negre)), (('g' :/ 7), (Pec Peo Negre)), (('h' :/ 7), (Pec Peo Negre))] 
+                      (('a' :/ 7), (Pec Peo Negre)), (('b' :/ 7), (Pec Peo Negre)), (('c' :/ 7), (Pec Peo Negre)), (('d' :/ 7), (Pec Peo Negre)), (('e' :/ 7), (Pec Peo Negre)), (('f' :/ 7), (Pec Peo Negre)), (('g' :/ 7), (Pec Peo Negre)), (('h' :/ 7), (Pec Peo Negre))]
 
 -- Retorna una peça d'acord amb el caràcter passat
 -- per paràmetre.
@@ -161,10 +161,6 @@ casB = (posB, torre)
 unaJugada :: Jugada
 unaJugada = Jug torre ('a':/3) ('z':/3)
 
-
-unTauler :: Tauler
-unTauler = Tau [casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casB, casA, casB]
-
 -- MÈTODES
 
 -- Retorna la peça ("Just Peça") del tauler que té la posició passada
@@ -179,8 +175,8 @@ trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0
 -- Retorna un conjunt de caselles que tenen la posició passada
 -- per paràmetre. Si alguna de les posicions no existeix, retorna error.
 trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
-trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
 trobarPeces t [] = []
+trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
 
 -- Retorna la fila d'una posició.
 fila :: Posicio -> Int
@@ -340,11 +336,38 @@ alguEntre t p q = algunaOcupada caselles
         caselles = trobarPeces t (posicionsEntre p q)
         algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
--- fesJugada :: Tauler -> Jugada -> Tauler
---fesJugada t (Jug tipus x0 x1)  = 
+aplicarJugada :: Tauler -> Jugada -> Bool -> [(Posicio, Peca)]
+aplicarJugada (Tau []) (Jug pj x0 x1) trobat = if (not trobat) then [(x1, pj)] else []
+aplicarJugada (Tau ((p, c) : t)) (Jug pj x0 x1) trobat =
+    if (p == x0)
+        then aplicarJugada (Tau t) (Jug pj x0 x1) trobat
+        else if (p == x1) -- Si això és cert, s'ha capturat una peça de l'adversari (s'ha de comprovar amb una altra funció si la peça de la casella destí és de l'adversari)
+            then [(x1, pj)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) True
+            else [(p, c)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) trobat
 
---escac :: Tauler -> Color -> Bool
---escac t c = False
+fesJugada :: Tauler -> Jugada -> Tauler
+fesJugada t j = Tau (aplicarJugada t j False)
+
+trobarRei :: Tauler -> Color -> Posicio
+trobarRei (Tau (p, (Pec tipus color)) : t) bandol = if (tipus == Rei && color == bandol) then p else trobarRei (Tau t) bandol
+
+pecesDeColor :: [(Posicio, Peca)] -> Color -> [(Posicio, Peca)]
+pecesDeColor [] color = []
+pecesDeColor ((p, (Pec pt pc)) : t) color = if (pc == color) then (p, (Pec pt pc)) : pecesDeColor t color else pecesDeColor t color
+
+moviments :: [(Posicio, Peca)] -> [Posicio]
+moviments [] = []
+moviments ((p, c) : ll) = moviment c p : moviments ll
+
+movimentsColor :: [(Posicio, Peca)] -> Color -> [Posicio]
+movimentsColor t color = moviments (pecesDeColor t color)
+
+escac :: Tauler -> Color -> Bool
+escac t c = elem posRei movimentsContrincant
+    where
+        posRei = trobarRei t c
+        colorContrincant = if (c == Blanc) then Negre else c
+        movimentsContrincant = movimentsColor colorContrincant
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
@@ -374,5 +397,8 @@ jugadaLegal t (Jug p x0 x1) =
         origenLliure = isNothing origen
         origenDiferent = (fromJust origen) /= p
 
+-- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
+-- i)   interposició d'una peça entre agresora-agredida
+-- ii)  captura de la peça agresora
+-- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
 --escacMat :: Tauler -> Color -> Bool
---escacMat t c = False
