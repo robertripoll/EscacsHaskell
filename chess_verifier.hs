@@ -271,6 +271,10 @@ moviment (Pec t _) pos = if (t == Peo || t == Cavall || t == Rei) then filter (p
     where
         mov = generarMoviments t pos
 
+moviments :: [(Posicio, Peca)] -> [Posicio]
+moviments [] = []
+moviments ((p, c) : ll) = moviment c p ++ moviments ll
+
 -- Compara la fila de dos posicions passades per paràmetre:
 -- si les files són iguals retorna 0, si la fila de la
 -- posició A és inferior a la de la posició B retorna -1, i
@@ -349,25 +353,21 @@ fesJugada :: Tauler -> Jugada -> Tauler
 fesJugada t j = Tau (aplicarJugada t j False)
 
 trobarRei :: Tauler -> Color -> Posicio
-trobarRei (Tau (p, (Pec tipus color)) : t) bandol = if (tipus == Rei && color == bandol) then p else trobarRei (Tau t) bandol
+trobarRei (Tau ((p, (Pec tipus color)) : t)) bandol = if (tipus == Rei && color == bandol) then p else trobarRei (Tau t) bandol
 
-pecesDeColor :: [(Posicio, Peca)] -> Color -> [(Posicio, Peca)]
-pecesDeColor [] color = []
-pecesDeColor ((p, (Pec pt pc)) : t) color = if (pc == color) then (p, (Pec pt pc)) : pecesDeColor t color else pecesDeColor t color
+pecesDeColor :: Tauler -> Color -> [(Posicio, Peca)]
+pecesDeColor (Tau []) color = []
+pecesDeColor (Tau ((p, (Pec pt pc)) : t)) color = if (pc == color) then (p, (Pec pt pc)) : pecesDeColor (Tau t) color else pecesDeColor (Tau t) color
 
-moviments :: [(Posicio, Peca)] -> [Posicio]
-moviments [] = []
-moviments ((p, c) : ll) = moviment c p : moviments ll
-
-movimentsColor :: [(Posicio, Peca)] -> Color -> [Posicio]
+movimentsColor :: Tauler -> Color -> [Posicio]
 movimentsColor t color = moviments (pecesDeColor t color)
 
 escac :: Tauler -> Color -> Bool
-escac t c = elem posRei movimentsContrincant
+escac (Tau t) c = elem posRei movimentsContrincant
     where
-        posRei = trobarRei t c
+        posRei = trobarRei (Tau t) c
         colorContrincant = if (c == Blanc) then Negre else c
-        movimentsContrincant = movimentsColor colorContrincant
+        movimentsContrincant = movimentsColor (Tau t) colorContrincant
 
 -- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
 casellaLliure :: Tauler -> Posicio -> Bool
