@@ -392,18 +392,13 @@ casellaLliure t p = isNothing (trobarPeca t p)
 --      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
 --      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
 jugadaLegal :: Tauler -> Jugada -> Int
-jugadaLegal t (Jug p x0 x1) =
-    if origenLliure
-        then -1 
-        else if origenDiferent
-            then -2
-            else if movimInvalid
-                then -3
-                else if pecaPelMig
-                    then -4
-                    else if destiMateixJugador
-                        then -5
-                        else 0
+jugadaLegal t (Jug p x0 x1)
+    | origenLliure = -1
+    | origenDiferent = -2
+    | movimInvalid = -3
+    | pecaPelMig = -4
+    | destiMateixJugador = -5
+    | otherwise = 0
     where
         desti = (trobarPeca t x1)
         destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
