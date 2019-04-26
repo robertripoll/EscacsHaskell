@@ -408,12 +408,25 @@ jugadaLegal t (Jug p x0 x1)
         origenDiferent = (fromJust origen) /= p
         movimInvalid = not (elem x1 (moviment p x0))
 
+jugadesColor :: Tauler -> Color -> [Jugada]
+jugadesColor t c = jugsPeces (pecesDeColor t c)
+    where
+        jugs p [] = []
+        jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms
+        jugsPeces [] = []
+        jugsPeces (p : ps) = (jugs p (moviment (snd p) (fst p))) ++ jugsPeces ps
+
 -- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
 -- i)   interposició d'una peça entre agresora-agredida
 -- ii)  captura de la peça agresora
 -- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
---escacMat :: Tauler -> Color -> Bool
-
+escacMat :: Tauler -> Color -> Bool
+escacMat t c = (escac t c) && escapatoria
+    where
+        jugades = jugadesColor t c
+        escacs [] = []
+        escacs (j : js) = (escac (fesJugada t j) c) : escacs js
+        escapatoria = elem False (escacs jugades)
 
 -- Llegeix una linia del tipus "1. Pe2e4 Pe7e5" i ho parseja
 -- en forma de Tupla, tenint en compte si son 2 o 3 paràmetres
