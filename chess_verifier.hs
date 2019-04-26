@@ -395,9 +395,9 @@ jugadaLegal :: Tauler -> Jugada -> Int
 jugadaLegal t (Jug p x0 x1)
     | origenLliure = -1
     | origenDiferent = -2
-    | movimInvalid = -3
-    | pecaPelMig = -4
+    | movimInvalid || ((tipusPeca p) == Peo && movPeoInvalid) = -3
     | destiMateixJugador = -5
+    | pecaPelMig = -4
     | otherwise = 0
     where
         desti = (trobarPeca t x1)
@@ -407,6 +407,22 @@ jugadaLegal t (Jug p x0 x1)
         origenLliure = isNothing origen
         origenDiferent = (fromJust origen) /= p
         movimInvalid = not (elem x1 (moviment p x0))
+        movPeoInvalid =
+            if (colorPeca p) == Blanc
+                then
+                    if (posicioUp (posicioUp x0)) == x1
+                        then (fila x0) /= 2
+                        else if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1
+                            then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti)))
+                            else False
+                else
+                    if (posicioDown (posicioDown x0)) == x1
+                        then (fila x0) /= 7
+                        else if (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1
+                            then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti)))
+                            else False
+-- La problemàtica de la funció "jugadaLegal" és que la funció "moviment" d'un Peó retorna diagonals superiors, cosa
+-- totalment vàlida però sempre i quan el peó sigui de color blanc. Si és de color negre, ha de retornar les diagonals inferiors.
 
 jugadesColor :: Tauler -> Color -> [Jugada]
 jugadesColor t c = jugsPeces (pecesDeColor t c)
@@ -421,12 +437,14 @@ jugadesColor t c = jugsPeces (pecesDeColor t c)
 -- ii)  captura de la peça agresora
 -- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
 escacMat :: Tauler -> Color -> Bool
-escacMat t c = (escac t c) && escapatoria
+escacMat (Tau t) c = (escac (Tau t) c) && escapatoria
     where
-        jugades = jugadesColor t c
+        jugades = jugadesColor (Tau t) c
         escacs [] = []
-        escacs (j : js) = (escac (fesJugada t j) c) : escacs js
+        escacs (j : js) = (escac (fesJugada (Tau t) j) c) : escacs js
         escapatoria = not (elem False (escacs jugades))
+-- Un error que passa amb "escacMat" és que no és possible trobar el rei, i això és perquè
+-- no es filtren les jugades il·legals, per tant la correcció s'hauria d'aplicar a "jugadesColor"
 
 -- Llegeix una linia del tipus "1. Pe2e4 Pe7e5" i ho parseja
 -- en forma de Tupla, tenint en compte si son 2 o 3 paràmetres
