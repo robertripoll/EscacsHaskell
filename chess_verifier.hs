@@ -102,10 +102,20 @@ instance Show Posicio where
 
 -- Jugada
 
-data Jugada = Jug Peca Posicio Posicio
+data Jugada = Jug Peca Posicio Posicio deriving Eq
 
 instance Show Jugada where
     show (Jug p x0 x1) = show p ++ show x0 ++ show x1
+
+-- JugadaGenerica 
+
+data JugadaGenerica = Jugada Peca Posicio Posicio | EnrocCurt Peca Posicio Posicio | EnrocLlarg Peca Posicio Posicio | Escac Peca Posicio Posicio | EscacMat Peca Posicio Posicio deriving Eq
+instance Show JugadaGenerica where
+    show (Jugada p x0 x1) = "Jugada"
+    show (EnrocLlarg p x0 x1) = "EnrocLlarg"
+    show (EnrocCurt p x0 x1) = "EnrocCurt"
+    show (Escac p x0 x1) = "Escac"
+    show (EscacMat p x0 x1) = "EscacMat"
 
 -- Casella
 
@@ -402,3 +412,52 @@ jugadaLegal t (Jug p x0 x1) =
 -- ii)  captura de la peça agresora
 -- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
 --escacMat :: Tauler -> Color -> Bool
+
+
+-- Llegeix una linia del tipus "1. Pe2e4 Pe7e5" i ho parseja
+-- en forma de Tupla, tenint en compte si son 2 o 3 paràmetres
+llegirLinia :: String -> (String, JugadaGenerica, Maybe JugadaGenerica)
+llegirLinia x =
+    if(length (words x) == 2)
+        then tornaDos (words x)
+        else tornaTres (words x)
+    where
+        tornaDos [num,j1] = (num, llegirJugada j1, Nothing)
+        tornaTres [num,j1,j2] = (num, llegirJugada j1, Just(llegirJugada j2))
+
+-- Donat un String com per exemple "Pe7e5" o "Dh5xf7++" o "0-0" 
+-- retorna el tipus de JugadaGenerica concret que és      
+llegirJugada :: String -> JugadaGenerica
+llegirJugada jug
+    | (elem '0' jug) && length jug>3 = (EnrocCurt torre ('a':/3) ('z':/3)) --TODO: ENROC CURT
+    | (elem '0' jug) = (EnrocLlarg torre ('a':/3) ('z':/3)) --TODO: ENROC LLARG
+    | (elem '+' jug) = do
+        let jugClean = [ x | x <- jug, not (x `elem` "+") ]
+        let p = take 1 jugClean !! 0
+        let x1 = take 1 (drop 1 jugClean) !! 0
+        let y1 = take 1 (drop 2 jugClean) !! 0
+        let x2 = take 1 (drop 3 jugClean) !! 0
+        let y2 = take 1 (drop 4 jugClean) !! 0
+        if (length $ filter (== '+') jug)==1 
+            then (Escac (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+            else (EscacMat (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+    | otherwise = do
+        let p = take 1 jug !! 0
+        let x1 = take 1 (drop 1 jug) !! 0
+        let y1 = take 1 (drop 2 jug) !! 0
+        let x2 = take 1 (drop 3 jug) !! 0
+        let y2 = take 1 (drop 4 jug) !! 0
+        (Jugada (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+
+
+-- Exemple d'ús: llegirPartida "pastor.txt"
+-- Interpreta la partida i la tradueix a Jugades, s'evaluen a "evalua"
+llegirPartida :: String -> IO()    
+llegirPartida fitxer= do
+    x <- readFile fitxer
+    let rondes = map llegirLinia (lines x)
+    print (map evalua rondes)
+    where
+        evalua :: (String, JugadaGenerica, Maybe JugadaGenerica) -> String
+        evalua (n, j1, j2) = do
+          n ++ " " ++ show j1 ++ ", " ++maybe "." show j2
