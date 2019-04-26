@@ -426,7 +426,7 @@ escacMat t c = (escac t c) && escapatoria
         jugades = jugadesColor t c
         escacs [] = []
         escacs (j : js) = (escac (fesJugada t j) c) : escacs js
-        escapatoria = elem False (escacs jugades)
+        escapatoria = not (elem False (escacs jugades))
 
 -- Llegeix una linia del tipus "1. Pe2e4 Pe7e5" i ho parseja
 -- en forma de Tupla, tenint en compte si son 2 o 3 paràmetres
