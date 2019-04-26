@@ -384,24 +384,21 @@ escac (Tau t) c = elem posRei movimentsContrincant
 casellaLliure :: Tauler -> Posicio -> Bool
 casellaLliure t p = isNothing (trobarPeca t p)
 
--- Comprovar:
---  * Casella destí sigui del color contrari (es pugi matar la peça)
---  * No hi hagi cap peça de per mig 
---  * El moviment sigui possible (✓)
---  * Si a la casella origen està la peça que ens passen
-jugadaLegal :: Tauler -> Jugada -> Bool
-jugadaLegal t (Jug p x0 x1) =
-    if origenLliure
-        then error "La casella origen de la jugada esta buida"
-        else if origenDiferent
-            then error "La peça de la casella origen no coincideix amb la peça de la jugada"
-            else if movimInvalid
-                then error "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
-                else if pecaPelMig
-                    then error "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
-                    else if destiMateixJugador
-                        then error "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
-                        else True
+-- Retorna 0 si la jugada passada és vàlida d'acord amb l'estat
+-- del tauler del paràmetre; si la jugada no és vàlida, retorna:
+--      -1 -> "La casella origen de la jugada esta buida"
+--      -2 -> "La peça de la casella origen no coincideix amb la peça de la jugada"
+--      -3 -> "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
+--      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
+--      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+jugadaLegal :: Tauler -> Jugada -> Int
+jugadaLegal t (Jug p x0 x1)
+    | origenLliure = -1
+    | origenDiferent = -2
+    | movimInvalid = -3
+    | pecaPelMig = -4
+    | destiMateixJugador = -5
+    | otherwise = 0
     where
         desti = (trobarPeca t x1)
         destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
