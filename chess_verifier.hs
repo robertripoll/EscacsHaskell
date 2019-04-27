@@ -261,25 +261,28 @@ sumaCoords (col :/ fila) x y = ((chr (ord col + x)) :/ (fila + y))
 
 -- Genera els moviments (vàlids o no) que pot fer un tipus
 -- de peça trobant-se en una posició concreta.
-generarMoviments :: TipusPeca -> Posicio -> [Posicio]
-generarMoviments t pos
-   | t == Peo = [posicioUp pos, posicioDiagSupEsq pos, posicioDiagSupDreta pos, posicioUp (posicioUp pos)]
-   | t == Cavall = [sumaCoords pos 1 2, sumaCoords pos 2 1, sumaCoords pos 2 (-1), sumaCoords pos 1 (-2), 
+generarMoviments :: Peca -> Posicio -> [Posicio]
+generarMoviments (Pec t c) pos
+    | t == Peo = 
+        if (c == Blanc)
+            then [posicioUp pos, posicioDiagSupEsq pos, posicioDiagSupDreta pos, posicioUp (posicioUp pos)]
+            else [posicioDown pos, posicioDiagInfEsq pos, posicioDiagInfDreta pos, posicioDown (posicioDown pos)]
+    | t == Cavall = [sumaCoords pos 1 2, sumaCoords pos 2 1, sumaCoords pos 2 (-1), sumaCoords pos 1 (-2), 
                     sumaCoords pos (-1) 2, sumaCoords pos (-2) 1, sumaCoords pos (-2) (-1), sumaCoords pos (-1) (-2)]
-   | t == Alfil = (aplicarFunc posicioDiagSupEsq pos) ++ (aplicarFunc posicioDiagSupDreta pos) ++ (aplicarFunc posicioDiagInfEsq pos) ++
+    | t == Alfil = (aplicarFunc posicioDiagSupEsq pos) ++ (aplicarFunc posicioDiagSupDreta pos) ++ (aplicarFunc posicioDiagInfEsq pos) ++
                   (aplicarFunc posicioDiagInfDreta pos)
-   | t == Torre = (aplicarFunc posicioUp pos) ++ (aplicarFunc posicioRight pos) ++ (aplicarFunc posicioDown pos) ++ (aplicarFunc posicioLeft pos)
-   | t == Reina = (aplicarFunc posicioUp pos) ++ (aplicarFunc posicioRight pos) ++ (aplicarFunc posicioDown pos) ++ (aplicarFunc posicioLeft pos) ++
+    | t == Torre = (aplicarFunc posicioUp pos) ++ (aplicarFunc posicioRight pos) ++ (aplicarFunc posicioDown pos) ++ (aplicarFunc posicioLeft pos)
+    | t == Reina = (aplicarFunc posicioUp pos) ++ (aplicarFunc posicioRight pos) ++ (aplicarFunc posicioDown pos) ++ (aplicarFunc posicioLeft pos) ++
                   (aplicarFunc posicioDiagSupEsq pos) ++ (aplicarFunc posicioDiagSupDreta pos) ++ (aplicarFunc posicioDiagInfEsq pos) ++
                   (aplicarFunc posicioDiagInfDreta pos)
-   | otherwise = [posicioUp pos, posicioDiagSupDreta pos, posicioRight pos, posicioDiagInfDreta pos, posicioDown pos, posicioDiagInfEsq pos, posicioLeft pos, posicioDiagSupEsq pos] -- Cas del Rei
+    | otherwise = [posicioUp pos, posicioDiagSupDreta pos, posicioRight pos, posicioDiagInfDreta pos, posicioDown pos, posicioDiagInfEsq pos, posicioLeft pos, posicioDiagSupEsq pos] -- Cas del Rei
 
 -- Retorna els moviments possibles que pot fer una peça
 -- des d'una posició concreta.
 moviment :: Peca -> Posicio -> [Posicio]
-moviment (Pec t _) pos = if (t == Peo || t == Cavall || t == Rei) then filter (posicioValida) mov else mov
+moviment (Pec t c) pos = if (t == Peo || t == Cavall || t == Rei) then filter (posicioValida) mov else mov
     where
-        mov = generarMoviments t pos
+        mov = generarMoviments (Pec t c) pos
 
 moviments :: [(Posicio, Peca)] -> [Posicio]
 moviments [] = []
@@ -395,9 +398,9 @@ jugadaLegal :: Tauler -> Jugada -> Int
 jugadaLegal t (Jug p x0 x1)
     | origenLliure = -1
     | origenDiferent = -2
-    | movimInvalid = -3
-    | pecaPelMig = -4
+    | movimInvalid || ((tipusPeca p) == Peo && movPeoInvalid) = -3
     | destiMateixJugador = -5
+    | pecaPelMig = -4
     | otherwise = 0
     where
         desti = (trobarPeca t x1)
@@ -407,13 +410,31 @@ jugadaLegal t (Jug p x0 x1)
         origenLliure = isNothing origen
         origenDiferent = (fromJust origen) /= p
         movimInvalid = not (elem x1 (moviment p x0))
+        movPeoInvalid =
+            if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1 || (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1
+                then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti)))
+                else isJust desti -- Peó no pot matar anant cap endavant, només mata en diagonal
+
+jugadesColor :: Tauler -> Color -> [Jugada]
+jugadesColor t c = jugsPeces (pecesDeColor t c)
+    where
+        jugs p [] = []
+        jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms
+        jugLegal j = jugadaLegal t j == 0
+        jugsPeces [] = []
+        jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps
 
 -- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
 -- i)   interposició d'una peça entre agresora-agredida
 -- ii)  captura de la peça agresora
 -- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
---escacMat :: Tauler -> Color -> Bool
-
+escacMat :: Tauler -> Color -> Bool
+escacMat (Tau t) c = (escac (Tau t) c) && escapatoria
+    where
+        jugades = jugadesColor (Tau t) c
+        escacs [] = []
+        escacs (j : js) = (escac (fesJugada (Tau t) j) c) : escacs js
+        escapatoria = not (elem False (escacs jugades))
 
 -- Llegeix una linia del tipus "1. Pe2e4 Pe7e5" i ho parseja
 -- en forma de Tupla, tenint en compte si son 2 o 3 paràmetres
