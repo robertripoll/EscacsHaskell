@@ -5,7 +5,7 @@ import Data.Maybe
 
 -- Color
 
-data Color = Blanc | Negre deriving Eq
+data Color = Blanc | Negre deriving (Eq,Show)
 
 -- TipusPeça
 
@@ -109,13 +109,7 @@ instance Show Jugada where
 
 -- JugadaGenerica 
 
-data JugadaGenerica = Jugada Peca Posicio Posicio | EnrocCurt Peca Posicio Posicio | EnrocLlarg Peca Posicio Posicio | Escac Peca Posicio Posicio | EscacMat Peca Posicio Posicio deriving Eq
-instance Show JugadaGenerica where
-    show (Jugada p x0 x1) = "Jugada"
-    show (EnrocLlarg p x0 x1) = "EnrocLlarg"
-    show (EnrocCurt p x0 x1) = "EnrocCurt"
-    show (Escac p x0 x1) = "Escac"
-    show (EscacMat p x0 x1) = "EscacMat"
+data JugadaGenerica = Jugada Peca Posicio Posicio | EnrocCurt Peca Posicio Posicio | EnrocLlarg Peca Posicio Posicio | Escac Peca Posicio Posicio | EscacMat Peca Posicio Posicio deriving (Eq, Show)
 
 -- Casella
 
@@ -454,7 +448,7 @@ llegirJugada jug
     | (elem '0' jug) && length jug>3 = (EnrocCurt torre ('a':/3) ('z':/3)) --TODO: ENROC CURT
     | (elem '0' jug) = (EnrocLlarg torre ('a':/3) ('z':/3)) --TODO: ENROC LLARG
     | (elem '+' jug) = do
-        let jugClean = [ x | x <- jug, not (x `elem` "+") ]
+        let jugClean = [ x | x <- jug, not (x `elem` "+x") ]
         let p = take 1 jugClean !! 0
         let x1 = take 1 (drop 1 jugClean) !! 0
         let y1 = take 1 (drop 2 jugClean) !! 0
@@ -464,13 +458,42 @@ llegirJugada jug
             then (Escac (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
             else (EscacMat (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
     | otherwise = do
-        let p = take 1 jug !! 0
-        let x1 = take 1 (drop 1 jug) !! 0
-        let y1 = take 1 (drop 2 jug) !! 0
-        let x2 = take 1 (drop 3 jug) !! 0
-        let y2 = take 1 (drop 4 jug) !! 0
+        let jugClean = [ x | x <- jug, not (x `elem` "x") ]
+        let p = take 1 jugClean !! 0
+        let x1 = take 1 (drop 1 jugClean) !! 0
+        let y1 = take 1 (drop 2 jugClean) !! 0
+        let x2 = take 1 (drop 3 jugClean) !! 0
+        let y2 = take 1 (drop 4 jugClean) !! 0
         (Jugada (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
 
+--      -1 -> "La casella origen de la jugada esta buida"
+--      -2 -> "La peça de la casella origen no coincideix amb la peça de la jugada"
+--      -3 -> "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
+--      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
+--      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+tractaUnaJugada :: String -> Tauler -> Color -> JugadaGenerica -> Tauler
+tractaUnaJugada n tauler color (Jugada (Pec tip _) p q) = do
+        let jug = (Jug (Pec tip color) p q)
+        if jugadaLegal tauler jug == 0 then fesJugada tauler jug
+        else if jugadaLegal tauler jug == -1 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La casella origen de la jugada esta buida")
+        else if jugadaLegal tauler jug == -2 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La peça de la casella origen no coincideix amb la peça de la jugada")
+        else if jugadaLegal tauler jug == -3 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça")
+        else if jugadaLegal tauler jug == -4 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": Hi ha una peça pel mig entre la posició origen i la posició destí la jugada")
+        else error("INVALID: Ronda["++ n ++"] Jugador amb peces " ++ show color ++ ": La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada")
+tractaUnaJugada n tauler color (EscacMat pe p q)     --TODO
+        | jugadaLegal tauler (Jug pe p q) == 0 = fesJugada tauler (Jug pe p q)
+        | otherwise = fesJugada tauler (Jug pe p q)
+tractaUnaJugada n tauler color (EnrocLlarg pe p q)   --TODO
+        |  True = fesJugada tauler (Jug peo posA posB)
+        | otherwise = fesJugada tauler (Jug peo posA posB)
+tractaUnaJugada n tauler color (Escac pe p q)        --TODO
+        | jugadaLegal tauler (Jug pe p q) == 0 = fesJugada tauler (Jug pe p q)
+        | otherwise = fesJugada tauler (Jug pe p q)  -- ...
+
+
+evalua :: Tauler -> (String, JugadaGenerica, Maybe JugadaGenerica) -> Tauler
+evalua t (n, j1, Nothing) = tractaUnaJugada n t Blanc j1
+evalua t (n, j1, Just j2) = tractaUnaJugada n (tractaUnaJugada n t Blanc j1) Negre j2 
 
 -- Exemple d'ús: llegirPartida "pastor.txt"
 -- Interpreta la partida i la tradueix a Jugades, s'evaluen a "evalua"
@@ -478,8 +501,4 @@ llegirPartida :: String -> IO()
 llegirPartida fitxer= do
     x <- readFile fitxer
     let rondes = map llegirLinia (lines x)
-    print (map evalua rondes)
-    where
-        evalua :: (String, JugadaGenerica, Maybe JugadaGenerica) -> String
-        evalua (n, j1, j2) = do
-          n ++ " " ++ show j1 ++ ", " ++maybe "." show j2
+    mostraTauler (foldl evalua taulerInicial rondes)
