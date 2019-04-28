@@ -389,24 +389,24 @@ casellaLliure t p = isNothing (trobarPeca t p)
 --      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
 --      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
 jugadaLegal :: Tauler -> Jugada -> Int
-jugadaLegal t (Jug p x0 x1)
+jugadaLegal t (Jug (Pec tip col) x0 x1)
     | origenLliure = -1
     | origenDiferent = -2
-    | movimInvalid || ((tipusPeca p) == Peo && movPeoInvalid) = -3
+    | movimInvalid || ((tipusPeca (Pec tip col)) == Peo && movPeoInvalid) = -3
     | destiMateixJugador = -5
     | pecaPelMig = -4
     | otherwise = 0
     where
         desti = (trobarPeca t x1)
-        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
-        pecaPelMig = alguEntre t x0 x1
+        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca (Pec tip col)))
+        pecaPelMig = if tip==Cavall then False else alguEntre t x0 x1
         origen = (trobarPeca t x0)
         origenLliure = isNothing origen
-        origenDiferent = (fromJust origen) /= p
-        movimInvalid = not (elem x1 (moviment p x0))
+        origenDiferent = (fromJust origen) /= (Pec tip col)
+        movimInvalid = not (elem x1 (moviment (Pec tip col) x0))
         movPeoInvalid =
             if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1 || (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1
-                then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti)))
+                then isNothing desti || ((isJust desti) && (colorPeca (Pec tip col)) == (colorPeca (fromJust desti)))
                 else isJust desti -- Peó no pot matar anant cap endavant, només mata en diagonal
 
 jugadesColor :: Tauler -> Color -> [Jugada]
