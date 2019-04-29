@@ -1,5 +1,6 @@
 import Data.Char
 import Data.Maybe
+import Debug.Trace
 
 -- TIPUS DE DADES I INSTANCES
 
@@ -44,15 +45,13 @@ taulerInicial = Tau [(('a' :/ 1), (Pec Torre Blanc)), (('b' :/ 1), (Pec Cavall B
 
 -- Retorna una peça d'acord amb el caràcter passat
 -- per paràmetre.
-llegirPeca :: Char -> Peca
-llegirPeca p = do
-    let color = if(isUpper p) then Blanc else Negre
-    let x = toUpper p
-    if (x == 'P') then (Pec Peo color)
-    else if (x == 'T') then (Pec Torre color)
-    else if (x == 'C') then (Pec Cavall color)
-    else if (x == 'A') then (Pec Alfil color)
-    else if (x == 'D') then (Pec Reina color)
+llegirPeca :: Char -> Color -> Peca
+llegirPeca p color = do
+    if (p == 'P') then (Pec Peo color)
+    else if (p == 'T') then (Pec Torre color)
+    else if (p == 'C') then (Pec Cavall color)
+    else if (p == 'A') then (Pec Alfil color)
+    else if (p == 'D') then (Pec Reina color)
     else (Pec Rei color)
 
 
@@ -121,7 +120,10 @@ mostraCasella (_, p) = mostraPeca p
 -- Tauler
 
 data Tauler = Tau [(Posicio, Peca)]
-
+instance Show Tauler where
+    show t = do
+        let tauler = taulerToString t
+        "\n" ++ show "  ============" ++ ""++"\n"++"" ++ "8- | " ++ take 8 (drop 56 tauler) ++ " |"++""++"\n"++""++"7- | " ++ take 8 (drop 48 tauler) ++ " |"++""++"\n"++""++"6- | " ++ take 8 (drop 40 tauler) ++ " |"++"\n"++"5- | " ++ take 8 (drop 32 tauler) ++ " |"++"\n"++"4- | " ++ take 8 (drop 24 tauler) ++ " |"++"\n"++"3- | " ++ take 8 (drop 16 tauler) ++ " |"++"\n"++"2- | " ++ take 8 (drop 8 tauler) ++ " |"++"\n"++"1- | " ++ take 8 tauler ++ " |"++"\n"++"   ============"++"\n"++"     abcdefgh"
 -- Partida
 
 data Partida = Par Tauler Color
@@ -438,13 +440,13 @@ llegirLinia x =
         then tornaDos (words x)
         else tornaTres (words x)
     where
-        tornaDos [num,j1] = (num, llegirJugada j1, Nothing)
-        tornaTres [num,j1,j2] = (num, llegirJugada j1, Just(llegirJugada j2))
+        tornaDos [num,j1] = (num, llegirJugada j1 Blanc, Nothing)
+        tornaTres [num,j1,j2] = (num, llegirJugada j1 Blanc, Just(llegirJugada j2 Negre))
 
 -- Donat un String com per exemple "Pe7e5" o "Dh5xf7++" o "0-0" 
 -- retorna el tipus de JugadaGenerica concret que és      
-llegirJugada :: String -> JugadaGenerica
-llegirJugada jug
+llegirJugada :: String -> Color -> JugadaGenerica
+llegirJugada jug color
     | (elem '0' jug) && length jug>3 = (EnrocCurt torre ('a':/3) ('z':/3)) --TODO: ENROC CURT
     | (elem '0' jug) = (EnrocLlarg torre ('a':/3) ('z':/3)) --TODO: ENROC LLARG
     | (elem '+' jug) = do
@@ -455,8 +457,8 @@ llegirJugada jug
         let x2 = take 1 (drop 3 jugClean) !! 0
         let y2 = take 1 (drop 4 jugClean) !! 0
         if (length $ filter (== '+') jug)==1 
-            then (Escac (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
-            else (EscacMat (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+            then (Escac (llegirPeca p color) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+            else (EscacMat (llegirPeca p color) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
     | otherwise = do
         let jugClean = [ x | x <- jug, not (x `elem` "x") ]
         let p = take 1 jugClean !! 0
@@ -464,7 +466,7 @@ llegirJugada jug
         let y1 = take 1 (drop 2 jugClean) !! 0
         let x2 = take 1 (drop 3 jugClean) !! 0
         let y2 = take 1 (drop 4 jugClean) !! 0
-        (Jugada (llegirPeca p) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+        (Jugada (llegirPeca p color) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
 
 --      -1 -> "La casella origen de la jugada esta buida"
 --      -2 -> "La peça de la casella origen no coincideix amb la peça de la jugada"
@@ -490,10 +492,9 @@ tractaUnaJugada n tauler color (Escac pe p q)        --TODO
         | jugadaLegal tauler (Jug pe p q) == 0 = fesJugada tauler (Jug pe p q)
         | otherwise = fesJugada tauler (Jug pe p q)  -- ...
 
-
 evalua :: Tauler -> (String, JugadaGenerica, Maybe JugadaGenerica) -> Tauler
-evalua t (n, j1, Nothing) = tractaUnaJugada n t Blanc j1
-evalua t (n, j1, Just j2) = tractaUnaJugada n (tractaUnaJugada n t Blanc j1) Negre j2 
+evalua t (n, j1, Nothing) = traceShow (tractaUnaJugada n t Blanc j1) (tractaUnaJugada n t Blanc j1)
+evalua t (n, j1, Just j2) = traceShow ((tractaUnaJugada n t Blanc j1),(tractaUnaJugada n (tractaUnaJugada n t Blanc j1) Negre j2)) (tractaUnaJugada n (tractaUnaJugada n t Blanc j1) Negre j2)
 
 -- Exemple d'ús: llegirPartida "pastor.txt"
 -- Interpreta la partida i la tradueix a Jugades, s'evaluen a "evalua"
