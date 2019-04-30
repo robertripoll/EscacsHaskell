@@ -272,8 +272,8 @@ generarMoviments :: Peca -> Posicio -> [Posicio]
 generarMoviments (Pec t c) pos
     | t == Peo = 
         if (c == Blanc) -- El color del peó és blanc
-            then [posicioUp pos, posicioDiagSupEsq pos, posicioDiagSupDreta pos, posicioUp (posicioUp pos)]
-            else [posicioDown pos, posicioDiagInfEsq pos, posicioDiagInfDreta pos, posicioDown (posicioDown pos)]
+            then [posicioUp pos, posicioDiagSupEsq pos, posicioDiagSupDreta pos, posicioUp (posicioUp pos)] -- La peça es mou cap adalt
+            else [posicioDown pos, posicioDiagInfEsq pos, posicioDiagInfDreta pos, posicioDown (posicioDown pos)] -- La peça es mou cap abaix
     | t == Cavall = [sumaCoords pos 1 2, sumaCoords pos 2 1, sumaCoords pos 2 (-1), sumaCoords pos 1 (-2), 
                     sumaCoords pos (-1) 2, sumaCoords pos (-2) 1, sumaCoords pos (-2) (-1), sumaCoords pos (-1) (-2)]
     | t == Alfil = (aplicarFunc posicioDiagSupEsq pos) ++ (aplicarFunc posicioDiagSupDreta pos) ++ (aplicarFunc posicioDiagInfEsq pos) ++
@@ -338,20 +338,20 @@ posicionsEntre a b
         if (compCol == 0) -- Coincideix columna de la posició A i posició B
             then [] -- No hi ha cap peça entre elles
             else if (compCol == -1) -- La columna A és inferior a la de la posició B
-                then (generarPosicions a b posicioRight)
+                then (generarPosicions a b posicioRight) -- Generem les posicions entre A i B anant cap a la dreta
                 else (generarPosicions a b posicioLeft) -- Columna A superior a la de la posició B
     | compFila == -1 = -- La fila de la posició A és inferior a la de la posició B
         if (compCol == 0) -- Coincideix columna de la posició A amb la posició B
-            then (generarPosicions a b posicioUp) -- Retornem les caselles que hi ha des d'A fins a B partint des d'A i anant fins 
-            else if (compCol == -1)
-                then (generarPosicions a b posicioDiagSupDreta)
-                else (generarPosicions a b posicioDiagSupEsq)
-    | otherwise = 
-        if (compCol == 0)
-            then (generarPosicions a b posicioDown)
-            else if (compCol == -1)
-                then (generarPosicions a b posicioDiagInfDreta)
-                else (generarPosicions a b posicioDiagInfEsq)
+            then (generarPosicions a b posicioUp) -- Generem les posicions entre A i B anant cap adalt 
+            else if (compCol == -1) -- La columna de la posició A és inferior a la de la posició B
+                then (generarPosicions a b posicioDiagSupDreta) -- Generem les posicions entre A i B anant cap a les diagonals superiors dreta
+                else (generarPosicions a b posicioDiagSupEsq) -- Columna A superior a la de la posició B
+    | otherwise =  -- La fila de la posició A és superior a la de la posició B
+        if (compCol == 0) -- Coincideix la columna de la posició A amb la posició B
+            then (generarPosicions a b posicioDown) -- Generem les posicions entre A i B anant cap avall
+            else if (compCol == -1) -- La columna de la posició A és inferior a la de la posició B
+                then (generarPosicions a b posicioDiagInfDreta) -- Generem les posicions entre A i B anant cap a les diagonals inferiors dreta
+                else (generarPosicions a b posicioDiagInfEsq) -- La columna de la posició A és superior a la de la posició B
     where
         compFila = compararFila a b -- Comparació de les files de la posició A i B
         compCol = compararColumna a b -- Comparació de les columnes de la posició A i B
@@ -362,9 +362,9 @@ posicionsEntre a b
 alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 alguEntre t p q = algunaOcupada caselles
     where
-        caselles = trobarPeces t (posicionsEntre p q)
-        algunaOcupada [] = False
-        algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
+        caselles = trobarPeces t (posicionsEntre p q) -- Peces entre les posicions passades per paràmetre
+        algunaOcupada [] = False -- La llista de posicions està buida
+        algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs -- Comprovem si la casella que estem iterant està ocupada o no, i ens aturem al trobar una ocupada
 
 -- Retorna el resultat d'aplicar una jugada passada per paràmetre
 -- sobre el tauler passat per paràmetre. El booleà passat per paràmetre
@@ -382,7 +382,7 @@ aplicarJugada (Tau ((p, c) : t)) (Jug pj x0 x1) trobat =
 -- paràmetre, partint del tauler (estat actual del joc) passat per
 -- paràmetre.
 fesJugada :: Tauler -> Jugada -> Tauler
-fesJugada t j = Tau (aplicarJugada t j False)
+fesJugada t j = Tau (aplicarJugada t j False) -- Aplica la jugada passada per paràmetre i retorna un nou tauler amb aquesta jugada aplicada
 
 -- Retorna la posició del rei del bàndol del color passat per paràmetre
 -- d'acord amb el tauler passat per paràmetre.
@@ -399,14 +399,17 @@ pecesDeColor (Tau ((p, (Pec pt pc)) : t)) color = if (pc == color) then (p, (Pec
 -- bàndol del color passat per paràmetre d'acord amb el tauler passat
 -- per paràmetre.
 movimentsColor :: Tauler -> Color -> [Posicio]
-movimentsColor t color = moviments (pecesDeColor t color)
+movimentsColor t color = moviments (pecesDeColor t color) -- Generem els moviments que poden fer les peçes del color del bàndol passat per paràmetre
 
+-- Retorna cert si el bàndol del color passat per paràmetre està en escac
+-- a l'estat actual de la partida (el tauler passat per paràmetre); retorna
+-- fals altrament.
 escac :: Tauler -> Color -> Bool
-escac (Tau t) c = elem posRei movimentsContrincant
+escac (Tau t) c = elem posRei movimentsContrincant -- Si el posició del rei del bàndol del color passat està dins dels elements possibles que pot fer el contrincant
     where
-        posRei = trobarRei (Tau t) c
-        colorContrincant = if (c == Blanc) then Negre else Blanc
-        movimentsContrincant = movimentsColor (Tau t) colorContrincant
+        posRei = trobarRei (Tau t) c -- Trobem la posició del rei
+        colorContrincant = if (c == Blanc) then Negre else Blanc 
+        movimentsContrincant = movimentsColor (Tau t) colorContrincant -- Moviments del contrincant
 
 -- Si la jugada és vàlida, retornarà 0 o 1. Això es determinarà a partir de
 -- la jugada que es vol fer i l'estat del tauler, que són elements que es passen
@@ -429,32 +432,31 @@ jugadaLegal t (Jug p x0 x1)
     | segueixEnEscac = -6
     | otherwise = if (isJust desti && (not destiMateixJugador)) then 1 else 0
     where
-        desti = trobarPeca t x1
-        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
-        pecaPelMig = alguEntre t x0 x1
-        origen = trobarPeca t x0
-        origenLliure = isNothing origen
-        origenDiferent = (fromJust origen) /= p
-        movimInvalid = not (elem x1 (moviment p x0))
-        movPeoInvalid =
-            if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1 || (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1
-                then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti)))
+        desti = trobarPeca t x1 -- Busquem la peça destí de la casella destí de la jugada
+        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p)) -- Comprovem si la casella destí està ocupada i és del mateix color que el de la peça de la jugada
+        pecaPelMig = alguEntre t x0 x1 -- Comprovem si hi ha alguna peça entremig de la casella origen i la casella destí de la jugada
+        origen = trobarPeca t x0 -- Busquem la peça de la casella origen de la jugada
+        origenLliure = isNothing origen -- Comprovem si no hi ha peça a la casella origen de la jugada
+        origenDiferent = (fromJust origen) /= p -- Comprovem si a la casella origen de la jugada no hi ha la mateixa peça que la de la jugada
+        movimInvalid = not (elem x1 (moviment p x0)) -- Comprovem si la jugada no està dins la llista de moviments que pot fer la peça de la jugada estant a la casella origen de la jugada
+        movPeoInvalid = -- Comprovem si el moviment de la jugada és invàlid d'acord amb els moviments del peó
+            if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1 || (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1 -- Moviment de captura per part del peó (mata en diagonal)
+                then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti))) -- No hi ha ningú a la casella destí o sí hi ha algú i la peça és del mateix bàndol
                 else isJust desti -- Peó no pot matar anant cap endavant, només mata en diagonal
-        segueixEnEscac = (escac t (colorPeca p)) && escac (fesJugada t (Jug p x0 x1)) (colorPeca p)
+        segueixEnEscac = (escac t (colorPeca p)) && escac (fesJugada t (Jug p x0 x1)) (colorPeca p) -- Comprovem si aplicant la jugada que ens passen per paràmetre seguim en escaac
 
+-- A partir de l'estat actual de la partida (el tauler passat per paràmetre)
+-- i un bàndol (color passat per paràmetre), retorna les possibles jugades
+-- vàlides i legals que pot fer.
 jugadesColor :: Tauler -> Color -> [Jugada]
 jugadesColor t c = jugsPeces (pecesDeColor t c)
     where
         jugs p [] = []
         jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms
-        jugLegal j = jugadaLegal t j == 0
+        jugLegal j = jugadaLegal t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
         jugsPeces [] = []
         jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps
 
--- ESCAC MAT QUAN NO SIGUI POSSIBLE CAP DE LES SEGÜENTS:
--- i)   interposició d'una peça entre agresora-agredida
--- ii)  captura de la peça agresora
--- iii) moure peça agredida a un escac (fora de l'acció de les peces contràries)
 escacMat :: Tauler -> Color -> Bool
 escacMat (Tau t) c = (escac (Tau t) c) && escapatoria
     where
