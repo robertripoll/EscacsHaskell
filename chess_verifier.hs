@@ -418,24 +418,26 @@ jugadesColor :: Tauler -> Color -> [Jugada]
 jugadesColor t c = jugsPeces (pecesDeColor t c)
     where
         jugs p [] = []
-        jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms
+        jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms -- Construïm els moviments que iterem de la llista passada per paràmetre relatius a la peça passada per paràmetre
         jugLegal j = jugadaValida t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
         jugsPeces [] = []
-        jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps
+        jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps -- Generem les jugades vàlides i legals a partir dels moviments que poden fer les peçes del color passat per paràmetre (passat a "jugadesColor")
 
+-- Retorna cert si el bàndol amb el color passat per paràmetre està en escac mat;
+-- retorna fals altrament.
 escacMat :: Tauler -> Color -> Bool
-escacMat (Tau t) c = (escac (Tau t) c) && escapatoria
+escacMat (Tau t) c = (escac (Tau t) c) && senseEscapatoria -- Si a l'estat actual de la partida (tauler passat per paràmetre) està en escac i no hi ha escapatòria de l'escac
     where
-        jugades = jugadesColor (Tau t) c
+        jugades = jugadesColor (Tau t) c -- Jugades que pot fer el bàndol amb el color passat per paràmetre
         escacs [] = []
-        escacs (j : js) = (escac (fesJugada (Tau t) j) c) : escacs js
-        escapatoria = not (elem False (escacs jugades))
+        escacs (j : js) = (escac (fesJugada (Tau t) j) c) : escacs js -- Generar un llistat de booleans que indiquen si hi ha escac aplicant les jugades passades per paràmetre
+        senseEscapatoria = not (elem False (escacs jugades)) -- No hi ha cap jugada que permeti escapar-nos de l'escac
 
 -- Llegeix una linia del tipus "1. Pe2e4 Pe7e5" i ho parseja
 -- en forma de Tupla, tenint en compte si son 2 o 3 paràmetres
 llegirLinia :: String -> (String, JugadaGenerica, Maybe JugadaGenerica)
 llegirLinia x =
-    if(length (words x) == 2)
+    if (length (words x) == 2)
         then tornaDos (words x)
         else tornaTres (words x)
     where
