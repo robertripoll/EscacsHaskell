@@ -428,7 +428,7 @@ jugadaLegal t (Jug p x0 x1)
     | origenDiferent = -2
     | movimInvalid || ((tipusPeca p) == Peo && movPeoInvalid) = -3
     | destiMateixJugador = -5
-    | ((tipusPeca p) == Cavall && pecaPelMig) = -4
+    | ((tipusPeca p) /= Cavall && pecaPelMig) = -4
     | segueixEnEscac = -6
     | otherwise = if (isJust desti && (not destiMateixJugador)) then 1 else 0
     where
