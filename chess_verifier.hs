@@ -405,11 +405,13 @@ movimentsColor t color = moviments (pecesDeColor t color) -- Generem els movimen
 -- a l'estat actual de la partida (el tauler passat per paràmetre); retorna
 -- fals altrament.
 escac :: Tauler -> Color -> Bool
-escac (Tau t) c = elem posRei movimentsContrincant -- Si el posició del rei del bàndol del color passat està dins dels elements possibles que pot fer el contrincant
+escac (Tau t) c = existeixPosicioRei posRei jugadesContrincant -- Si el posició del rei del bàndol del color passat està dins dels elements possibles que pot fer el contrincant
     where
         posRei = trobarRei (Tau t) c -- Trobem la posició del rei
-        colorContrincant = if (c == Blanc) then Negre else Blanc 
-        movimentsContrincant = movimentsColor (Tau t) colorContrincant -- Moviments del contrincant
+        colorContrincant = if (c == Blanc) then Negre else Blanc
+        existeixPosicioRei r [] = False
+        existeixPosicioRei r ((Jug _ _ x1) : js) = if (x1 == r) then True else existeixPosicioRei r js
+        jugadesContrincant = jugadesColor (Tau t) colorContrincant -- Moviments del contrincant
 
 -- Si la jugada és vàlida, retornarà 0 o 1. Això es determinarà a partir de
 -- la jugada que es vol fer i l'estat del tauler, que són elements que es passen
@@ -422,14 +424,13 @@ escac (Tau t) c = elem posRei movimentsContrincant -- Si el posició del rei del
 --      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
 --      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
 --      -6 -> "La situació actual és d'escac, i la jugada segueix en escac"
-jugadaLegal :: Tauler -> Jugada -> Int
-jugadaLegal t (Jug p x0 x1)
+jugadaValida :: Tauler -> Jugada -> Int
+jugadaValida t (Jug p x0 x1)
     | origenLliure = -1
     | origenDiferent = -2
     | movimInvalid || ((tipusPeca p) == Peo && movPeoInvalid) = -3
     | destiMateixJugador = -5
     | ((tipusPeca p) /= Cavall && pecaPelMig) = -4
-    | segueixEnEscac = -6
     | otherwise = if (isJust desti && (not destiMateixJugador)) then 1 else 0
     where
         desti = trobarPeca t x1 -- Busquem la peça destí de la casella destí de la jugada
@@ -443,7 +444,11 @@ jugadaLegal t (Jug p x0 x1)
             if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1 || (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1 -- Moviment de captura per part del peó (mata en diagonal)
                 then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti))) -- No hi ha ningú a la casella destí o sí hi ha algú i la peça és del mateix bàndol
                 else isJust desti -- Peó no pot matar anant cap endavant, només mata en diagonal
-        segueixEnEscac = (escac t (colorPeca p)) && escac (fesJugada t (Jug p x0 x1)) (colorPeca p) -- Comprovem si aplicant la jugada que ens passen per paràmetre seguim en escaac
+
+jugadaLegal :: Tauler -> Jugada -> Int
+jugadaLegal t j = if (segueixEnEscac t j) then -6 else jugadaValida t j 
+    where
+        segueixEnEscac t (Jug p x0 x1) = (escac t (colorPeca p)) && escac (fesJugada t (Jug p x0 x1)) (colorPeca p)
 
 -- A partir de l'estat actual de la partida (el tauler passat per paràmetre)
 -- i un bàndol (color passat per paràmetre), retorna les possibles jugades
@@ -453,7 +458,7 @@ jugadesColor t c = jugsPeces (pecesDeColor t c)
     where
         jugs p [] = []
         jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms
-        jugLegal j = jugadaLegal t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
+        jugLegal j = jugadaValida t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
         jugsPeces [] = []
         jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps
 
