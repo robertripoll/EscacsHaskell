@@ -514,7 +514,9 @@ tractaUnaJugada n tauler color (Jugada (Pec tip _) p q) = do
         else if jugadaLegal tauler jug == -2 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La peça de la casella origen no coincideix amb la peça de la jugada")
         else if jugadaLegal tauler jug == -3 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça")
         else if jugadaLegal tauler jug == -4 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": Hi ha una peça pel mig entre la posició origen i la posició destí la jugada")
-        else error("INVALID: Ronda["++ n ++"] Jugador amb peces " ++ show color ++ ": La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada")
+        else if jugadaLegal tauler jug == -5 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada")
+        else if jugadaLegal tauler jug == -6 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La situació actual és d'escac, i la jugada segueix en escac")
+        else fesJugada tauler jug
 tractaUnaJugada n tauler color (EscacMat pe p q)     --TODO
         | jugadaLegal tauler (Jug pe p q) == 0 = fesJugada tauler (Jug pe p q)
         | otherwise = fesJugada tauler (Jug pe p q)
