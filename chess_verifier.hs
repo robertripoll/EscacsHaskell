@@ -407,9 +407,9 @@ jugadaValida t (Jug p x0 x1)
                 else isJust desti -- Peó no pot matar anant cap endavant, només mata en diagonal
 
 jugadaLegal :: Tauler -> Jugada -> Int
-jugadaLegal t j = if (segueixEnEscac t j) then -6 else jugadaValida t j 
+jugadaLegal t j = if (produeixEscac t j) then -6 else jugadaValida t j 
     where
-        segueixEnEscac t (Jug p x0 x1) = (escac t (colorPeca p)) && escac (fesJugada t (Jug p x0 x1)) (colorPeca p)
+        produeixEscac t (Jug p x0 x1) = escac (fesJugada t (Jug p x0 x1)) (colorPeca p)
 
 -- A partir de l'estat actual de la partida (el tauler passat per paràmetre)
 -- i un bàndol (color passat per paràmetre), retorna les possibles jugades
