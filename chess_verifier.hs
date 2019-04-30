@@ -517,15 +517,15 @@ tractaUnaJugada n tauler color (Jugada (Pec tip _) p q) = do
         else if jugadaLegal tauler jug == -5 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada")
         else if jugadaLegal tauler jug == -6 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La situació actual és d'escac, i la jugada segueix en escac")
         else fesJugada tauler jug
-tractaUnaJugada n tauler color (EscacMat pe p q)     --TODO
-        | jugadaLegal tauler (Jug pe p q) == 0 = fesJugada tauler (Jug pe p q)
-        | otherwise = fesJugada tauler (Jug pe p q)
-tractaUnaJugada n tauler color (EnrocLlarg pe p q)   --TODO
-        |  True = fesJugada tauler (Jug peo posA posB)
+tractaUnaJugada n tauler color (Escac pe p q)        
+        | escac tauler color = fesJugada tauler (Jug pe p q)
+        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No s'ha indicat ESCAC << + >>")
+tractaUnaJugada n tauler color (EscacMat pe p q)     
+        | escacMat tauler color = fesJugada tauler (Jug pe p q)
+        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No s'ha indicat ESCACMAT << ++ >>")
+tractaUnaJugada n tauler color (EnrocLlarg pe p q)   
+        | True = fesJugada tauler (Jug peo posA posB)
         | otherwise = fesJugada tauler (Jug peo posA posB)
-tractaUnaJugada n tauler color (Escac pe p q)        --TODO
-        | jugadaLegal tauler (Jug pe p q) == 0 = fesJugada tauler (Jug pe p q)
-        | otherwise = fesJugada tauler (Jug pe p q)  -- ...
 
 evalua :: Tauler -> (String, JugadaGenerica, Maybe JugadaGenerica) -> Tauler
 evalua t (n, j1, Nothing) = traceShow (tractaUnaJugada n t Blanc j1) (tractaUnaJugada n t Blanc j1)
