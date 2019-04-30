@@ -383,33 +383,39 @@ escac (Tau t) c = elem posRei movimentsContrincant
 casellaLliure :: Tauler -> Posicio -> Bool
 casellaLliure t p = isNothing (trobarPeca t p)
 
--- Retorna 0 si la jugada passada és vàlida d'acord amb l'estat
--- del tauler del paràmetre; si la jugada no és vàlida, retorna:
+-- Si la jugada és vàlida, retornarà 0 o 1. Això es determinarà a partir de
+-- la jugada que es vol fer i l'estat del tauler. Retornarà 0 quan la jugada
+-- passada sigui vàlida i no es capturi a cap peça contrincant. Si la jugada
+-- és vàlida però es captura una peça contrincant, es retornarà 1. Si la
+-- jugada no és vàlida, retorna:
 --      -1 -> "La casella origen de la jugada esta buida"
 --      -2 -> "La peça de la casella origen no coincideix amb la peça de la jugada"
 --      -3 -> "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
 --      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
 --      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+--      -6 -> "La situació actual és d'escac, i la jugada segueix en escac"
 jugadaLegal :: Tauler -> Jugada -> Int
-jugadaLegal t (Jug (Pec tip col) x0 x1)
+jugadaLegal t (Jug p x0 x1)
     | origenLliure = -1
     | origenDiferent = -2
-    | movimInvalid || ((tipusPeca (Pec tip col)) == Peo && movPeoInvalid) = -3
+    | movimInvalid || ((tipusPeca p) == Peo && movPeoInvalid) = -3
     | destiMateixJugador = -5
-    | pecaPelMig = -4
-    | otherwise = 0
+    | ((tipusPeca p) == Cavall && pecaPelMig) = -4
+    | segueixEnEscac = -6
+    | otherwise = if (isJust desti && (not destiMateixJugador)) then 1 else 0
     where
-        desti = (trobarPeca t x1)
-        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca (Pec tip col)))
-        pecaPelMig = if tip==Cavall then False else alguEntre t x0 x1
-        origen = (trobarPeca t x0)
+        desti = trobarPeca t x1
+        destiMateixJugador = (isJust desti) && ((colorPeca (fromJust desti)) == (colorPeca p))
+        pecaPelMig = alguEntre t x0 x1
+        origen = trobarPeca t x0
         origenLliure = isNothing origen
-        origenDiferent = (fromJust origen) /= (Pec tip col)
-        movimInvalid = not (elem x1 (moviment (Pec tip col) x0))
+        origenDiferent = (fromJust origen) /= p
+        movimInvalid = not (elem x1 (moviment p x0))
         movPeoInvalid =
             if (posicioDiagSupEsq x0) == x1 || (posicioDiagSupDreta x0) == x1 || (posicioDiagInfEsq x0) == x1 || (posicioDiagInfDreta x0) == x1
-                then isNothing desti || ((isJust desti) && (colorPeca (Pec tip col)) == (colorPeca (fromJust desti)))
+                then isNothing desti || ((isJust desti) && (colorPeca p) == (colorPeca (fromJust desti)))
                 else isJust desti -- Peó no pot matar anant cap endavant, només mata en diagonal
+        segueixEnEscac = (escac t (colorPeca p)) && escac (fesJugada t (Jug p x0 x1)) (colorPeca p)
 
 jugadesColor :: Tauler -> Color -> [Jugada]
 jugadesColor t c = jugsPeces (pecesDeColor t c)
