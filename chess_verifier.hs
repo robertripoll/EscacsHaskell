@@ -6,7 +6,7 @@ import Debug.Trace
 
 -- Color
 
-data Color = Blanc | Negre deriving (Eq,Show)
+data Color = Blanc | Negre deriving (Eq, Show)
 
 -- TipusPeça
 
@@ -16,9 +16,11 @@ data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
 
 data Peca = Pec TipusPeca Color deriving Eq
 
+-- Retorna el tipus d'una peça passada per paràmetre.
 tipusPeca :: Peca -> TipusPeca
 tipusPeca (Pec t _) = t
 
+-- Retorna el color d'una peça passada per paràmetre.
 colorPeca :: Peca -> Color
 colorPeca (Pec _ c) = c
 
@@ -38,6 +40,7 @@ mostraPeca (Pec tipus color)
    | (tipus == Cavall) = mostrarColor color 'C'
    | otherwise = mostrarColor color 'P'
 
+-- Tauler que representa el tauler inicial del joc d'escacs.
 taulerInicial = Tau [(('a' :/ 1), (Pec Torre Blanc)), (('b' :/ 1), (Pec Cavall Blanc)), (('c' :/ 1), (Pec Alfil Blanc)), (('d' :/ 1), (Pec Reina Blanc)), (('e' :/ 1), (Pec Rei Blanc)), (('f' :/ 1), (Pec Alfil Blanc)), (('g' :/ 1), (Pec Cavall Blanc)), (('h' :/ 1), (Pec Torre Blanc)),
                       (('a' :/ 8), (Pec Torre Negre)), (('b' :/ 8), (Pec Cavall Negre)), (('c' :/ 8), (Pec Alfil Negre)), (('d' :/ 8), (Pec Reina Negre)), (('e' :/ 8), (Pec Rei Negre)), (('f' :/ 8), (Pec Alfil Negre)), (('g' :/ 8), (Pec Cavall Negre)), (('h' :/ 8), (Pec Torre Negre)),
                       (('a' :/ 2), (Pec Peo Blanc)), (('b' :/ 2), (Pec Peo Blanc)), (('c' :/ 2), (Pec Peo Blanc)), (('d' :/ 2), (Pec Peo Blanc)), (('e' :/ 2), (Pec Peo Blanc)), (('f' :/ 2), (Pec Peo Blanc)), (('g' :/ 2), (Pec Peo Blanc)), (('h' :/ 2), (Pec Peo Blanc)),
@@ -54,9 +57,12 @@ llegirPeca p color = do
     else if (p == 'D') then (Pec Reina color)
     else (Pec Rei color)
 
-
-ferPos :: (Int,Int) -> Posicio
-ferPos (x,y) = (chr x :/ y)
+-- Crea una posició a partir de dos enters passats
+-- per paràmetre dins d'una tupla, dels quals el primer
+-- element de la tupla representa la columna i el segon
+-- representa la fila.
+ferPos :: (Int, Int) -> Posicio
+ferPos (x, y) = (chr x :/ y)
 
 mostraTauler :: Tauler -> IO()
 mostraTauler t = do
@@ -72,7 +78,6 @@ mostraTauler t = do
     putStrLn("1- | " ++ take 8 tauler ++ " |")
     putStrLn("   ============")
     putStrLn("     abcdefgh")
-
 
 taulerToString :: Tauler -> String
 taulerToString t = _m(trobarPeces t pos) where
@@ -124,6 +129,7 @@ instance Show Tauler where
     show t = do
         let tauler = taulerToString t
         "\n" ++ show "  ============" ++ ""++"\n"++"" ++ "8- | " ++ take 8 (drop 56 tauler) ++ " |"++""++"\n"++""++"7- | " ++ take 8 (drop 48 tauler) ++ " |"++""++"\n"++""++"6- | " ++ take 8 (drop 40 tauler) ++ " |"++"\n"++"5- | " ++ take 8 (drop 32 tauler) ++ " |"++"\n"++"4- | " ++ take 8 (drop 24 tauler) ++ " |"++"\n"++"3- | " ++ take 8 (drop 16 tauler) ++ " |"++"\n"++"2- | " ++ take 8 (drop 8 tauler) ++ " |"++"\n"++"1- | " ++ take 8 tauler ++ " |"++"\n"++"   ============"++"\n"++"     abcdefgh"
+
 -- Partida
 
 data Partida = Par Tauler Color
@@ -169,8 +175,9 @@ unaJugada = Jug torre ('a':/3) ('z':/3)
 
 -- MÈTODES
 
--- Retorna la peça ("Just Peça") del tauler que té la posició passada
--- per paràmetre. Si la posició no existeix retorna "Nothing".
+-- Retorna la peça ("Just Peça") del tauler passat per paràmetre
+-- que es troba a la posició passada per paràmetre. Si la posició
+-- no existeix retorna "Nothing".
 trobarPeca :: Tauler -> Posicio -> Maybe Peca
 trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0))
     where
@@ -178,17 +185,20 @@ trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0
         trobat = (filter (esCasella p) t)
         peca (_, x) = x
 
--- Retorna un conjunt de caselles que tenen la posició passada
--- per paràmetre. Si alguna de les posicions no existeix, retorna error.
+-- Retorna un conjunt de peces que tenen la posició passada per
+-- paràmetre en una llista, d'acord amb el tauler passat per
+-- paràmetre. Si una posició de les passades a la llista no es
+-- troba, s'afegirà un "Nothing" a la llista a retornar; en cas
+-- que es trobi, s'afegirà un "Just Peca".
 trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
 trobarPeces t [] = []
 trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
 
--- Retorna la fila d'una posició.
+-- Retorna la fila d'una posició passada per paràmetre.
 fila :: Posicio -> Int
 fila (_ :/ x) = x
 
--- Retorna la columna d'una posició.
+-- Retorna la columna d'una posició passada per paràmetre.
 columna :: Posicio -> Char
 columna (x :/ _) = x
 
@@ -198,51 +208,51 @@ columna (x :/ _) = x
 posicioValida :: Posicio -> Bool
 posicioValida (c :/ f) = (c >= 'a' && c <= 'h' && f >= 1 && f <= 8)
 
--- Retorna el desplaçament una posició més adalt 
--- de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més adalt 
+-- respecte la posició passada per paràmetre.
 posicioUp :: Posicio -> Posicio
 posicioUp (col :/ fila) = col :/ (fila + 1)
 
--- Retorna el desplaçament una posició més abaix 
--- de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més adalt 
+-- respecte la posició passada per paràmetre.
 posicioDown :: Posicio -> Posicio
 posicioDown (col :/ fila) = col :/ (fila - 1)
 
--- Retorna el desplaçament una posició més a la dreta 
--- de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més a la dreta 
+-- respecte la posició passada per paràmetre.
 posicioRight :: Posicio -> Posicio
 posicioRight (col :/ fila) = (chr (ord col + 1)) :/ fila
 
--- Retorna el desplaçament una posició més a l'esquerra 
--- de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més a l'esquerra 
+-- respecte la posició passada per paràmetre.
 posicioLeft :: Posicio -> Posicio
 posicioLeft (col :/ fila) = (chr (ord col - 1)) :/ fila
 
--- Retorna el desplaçament una posició més a la diagonal
--- superior esquerra de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més a la diagonal
+-- superior esquerra respecte la posició passada per paràmetre.
 posicioDiagSupEsq :: Posicio -> Posicio
 posicioDiagSupEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila + 1)
 
--- Retorna el desplaçament una posició més a la diagonal
--- superior dreta de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més a la diagonal
+-- superior dreta respecte la posició passada per paràmetre.
 posicioDiagSupDreta :: Posicio -> Posicio
 posicioDiagSupDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila + 1)
 
--- Retorna el desplaçament una posició més a la diagonal
--- inferior esquerra de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més a la diagonal
+-- inferior esquerra respecte la posició passada per paràmetre.
 posicioDiagInfEsq :: Posicio -> Posicio
 posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 
--- Retorna el desplaçament una posició més a la diagonal
--- inferior dreta de la posició passada per paràmetre.
+-- Retorna el desplaçament d'una posició més a la diagonal
+-- inferior dreta respecte la posició passada per paràmetre.
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
 
 -- Aplica una funció passada per paràmetre a una posició
--- passada per paràmetre, i retorna el resultat d'aplicar
--- la funció a la posició, de tornar a aplicar la funció
+-- passada per paràmetre, i retorna, en un llistat, el resultat
+-- d'aplicar la funció a la posició, de tornar a aplicar la funció
 -- al previ resultat i així successivament fins trobar una
--- posició no vàlida. 
+-- posició no vàlida.
 aplicarFunc :: (Posicio -> Posicio) -> Posicio -> [Posicio]
 aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
     where
@@ -255,12 +265,13 @@ aplicarFunc f x = if (valida) then aplic : (aplicarFunc f aplic) else []
 sumaCoords :: Posicio -> Int -> Int -> Posicio
 sumaCoords (col :/ fila) x y = ((chr (ord col + x)) :/ (fila + y))
 
--- Genera els moviments (vàlids o no) que pot fer un tipus
--- de peça trobant-se en una posició concreta.
+-- Genera les posicions on pot anar una peça passada per
+-- paràmetre trobant-se en una posició passada per paràmetre,
+-- d'acord amb les regles del joc i com es pot moure la peça.
 generarMoviments :: Peca -> Posicio -> [Posicio]
 generarMoviments (Pec t c) pos
     | t == Peo = 
-        if (c == Blanc)
+        if (c == Blanc) -- El color del peó és blanc
             then [posicioUp pos, posicioDiagSupEsq pos, posicioDiagSupDreta pos, posicioUp (posicioUp pos)]
             else [posicioDown pos, posicioDiagInfEsq pos, posicioDiagInfDreta pos, posicioDown (posicioDown pos)]
     | t == Cavall = [sumaCoords pos 1 2, sumaCoords pos 2 1, sumaCoords pos 2 (-1), sumaCoords pos 1 (-2), 
@@ -273,13 +284,17 @@ generarMoviments (Pec t c) pos
                   (aplicarFunc posicioDiagInfDreta pos)
     | otherwise = [posicioUp pos, posicioDiagSupDreta pos, posicioRight pos, posicioDiagInfDreta pos, posicioDown pos, posicioDiagInfEsq pos, posicioLeft pos, posicioDiagSupEsq pos] -- Cas del Rei
 
--- Retorna els moviments possibles que pot fer una peça
--- des d'una posició concreta.
+-- Retorna les posicions on es pot desplaçar una peça passada per
+-- paràmetre quan està situada en una posició passada per paràmetre.
 moviment :: Peca -> Posicio -> [Posicio]
 moviment (Pec t c) pos = if (t == Peo || t == Cavall || t == Rei) then filter (posicioValida) mov else mov
     where
         mov = generarMoviments (Pec t c) pos
 
+-- Retorna les posicions on es poden desplaçar les peces que es troben
+-- en una posició. Cada peça (segon element) i posició (primer element)
+-- es troba en una tupla, que es troben dins d'una llista que és la que es
+-- passa per paràmetre.
 moviments :: [(Posicio, Peca)] -> [Posicio]
 moviments [] = []
 moviments ((p, c) : ll) = moviment c p ++ moviments ll
@@ -304,30 +319,30 @@ compararColumna (ca :/ _) (cb :/ _)
     | (ord ca) < (ord cb) = -1
     | otherwise = 1
 
--- Retorna les posicions dins d'un interval passat per
--- paràmetre (posA, posB) aplicant una funció passada
--- per paràmetre. Dins d'aquesta llista de posicions
--- s'exclouen tant posA com posB.
+-- Retorna les posicions dins d'un interval passat per paràmetre
+-- (posA, posB) aplicant una funció passada per paràmetre fins
+-- trobar una posició no vàlida o que sigui la posició B.
+-- Dins d'aquesta llista de posicions s'exclouen tant posA com posB.
 generarPosicions :: Posicio -> Posicio -> (Posicio -> Posicio) -> [Posicio]
 generarPosicions a b f = if (valida) then segCas : (generarPosicions segCas b f) else []
     where
         segCas = f a
-        valida = (posicioValida segCas) && (segCas /= b)
+        valida = (posicioValida segCas) && (segCas /= b) -- Posició dins del rang del tauler i no és posició destí (posició B)
 
--- Retorna les posicions dins d'un interval passat per
--- paràmetre (posA, posB). Dins d'aquesta llista de
--- posicions s'exclouen tant posA com posB.
+-- Retorna les posicions que es troben dins de l'interval passat
+-- per paràmetre (posA, posB). Dins d'aquesta llista de posicions
+-- s'exclouen tant posA com posB.
 posicionsEntre :: Posicio -> Posicio -> [Posicio]
 posicionsEntre a b
-    | compFila == 0 =
-        if (compCol == 0)
-            then []
-            else if (compCol == -1)
+    | compFila == 0 = -- Coincideix fila de la posició A i posició B
+        if (compCol == 0) -- Coincideix columna de la posició A i posició B
+            then [] -- No hi ha cap peça entre elles
+            else if (compCol == -1) -- La columna A és inferior a la de la posició B
                 then (generarPosicions a b posicioRight)
-                else (generarPosicions a b posicioLeft)
-    | compFila == -1 =
-        if (compCol == 0)
-            then (generarPosicions a b posicioUp)
+                else (generarPosicions a b posicioLeft) -- Columna A superior a la de la posició B
+    | compFila == -1 = -- La fila de la posició A és inferior a la de la posició B
+        if (compCol == 0) -- Coincideix columna de la posició A amb la posició B
+            then (generarPosicions a b posicioUp) -- Retornem les caselles que hi ha des d'A fins a B partint des d'A i anant fins 
             else if (compCol == -1)
                 then (generarPosicions a b posicioDiagSupDreta)
                 else (generarPosicions a b posicioDiagSupEsq)
@@ -338,11 +353,12 @@ posicionsEntre a b
                 then (generarPosicions a b posicioDiagInfDreta)
                 else (generarPosicions a b posicioDiagInfEsq)
     where
-        compFila = compararFila a b
-        compCol = compararColumna a b
+        compFila = compararFila a b -- Comparació de les files de la posició A i B
+        compCol = compararColumna a b -- Comparació de les columnes de la posició A i B
 
 -- Retorna cert si hi ha alguna peça entre dues posicions
--- passades per paràmetre; fals altrament.
+-- passades per paràmetre (excloent les dues posicions, es clar);
+-- fals altrament.
 alguEntre :: Tauler -> Posicio -> Posicio -> Bool
 alguEntre t p q = algunaOcupada caselles
     where
@@ -350,25 +366,38 @@ alguEntre t p q = algunaOcupada caselles
         algunaOcupada [] = False
         algunaOcupada (c : cs) = if (isJust c) then True else algunaOcupada cs
 
+-- Retorna el resultat d'aplicar una jugada passada per paràmetre
+-- sobre el tauler passat per paràmetre. El booleà passat per paràmetre
+-- indica si s'ha trobat la casella de la posició destí de la jugada o no.
 aplicarJugada :: Tauler -> Jugada -> Bool -> [(Posicio, Peca)]
-aplicarJugada (Tau []) (Jug pj x0 x1) trobat = if (not trobat) then [(x1, pj)] else []
+aplicarJugada (Tau []) (Jug pj x0 x1) trobat = if (not trobat) then [(x1, pj)] else [] -- Si hem iterat tot el tauler i no hem trobat la casella destí, la retornem per afegir-la al tauler que generarem; altrament, retornarem una llista buida
 aplicarJugada (Tau ((p, c) : t)) (Jug pj x0 x1) trobat =
-    if (p == x0)
-        then aplicarJugada (Tau t) (Jug pj x0 x1) trobat
-        else if (p == x1) -- Si això és cert, s'ha capturat una peça de l'adversari (s'ha de comprovar amb una altra funció si la peça de la casella destí és de l'adversari)
-            then [(x1, pj)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) True
-            else [(p, c)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) trobat
+    if (p == x0) -- Hem trobat la casella origen de la jugada
+        then aplicarJugada (Tau t) (Jug pj x0 x1) trobat -- Seguim iterant i generant el tauler sense considerar ("eliminant") la casella origen que ara estarà buida (per tant no formarà part del nou tauler)
+        else if (p == x1) -- Si això és cert, s'ha capturat una peça de l'adversari (la casella formava part del tauler, i només emmagatzemem les caselles amb una peça); s'ha de comprovar amb una altra funció si la peça de la casella destí és de l'adversari
+            then [(x1, pj)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) True -- Afegirem la peça de la jugada a la casella destí a la resta de la llista de caselles del tauler
+            else [(p, c)] ++ aplicarJugada (Tau t) (Jug pj x0 x1) trobat -- Afegirem la casella de la iteració actual al tauler juntament amb les demés caselles
 
+-- Retorna un nou tauler resultant d'aplicar la jugada passada per
+-- paràmetre, partint del tauler (estat actual del joc) passat per
+-- paràmetre.
 fesJugada :: Tauler -> Jugada -> Tauler
 fesJugada t j = Tau (aplicarJugada t j False)
 
+-- Retorna la posició del rei del bàndol del color passat per paràmetre
+-- d'acord amb el tauler passat per paràmetre.
 trobarRei :: Tauler -> Color -> Posicio
 trobarRei (Tau ((p, (Pec tipus color)) : t)) bandol = if (tipus == Rei && color == bandol) then p else trobarRei (Tau t) bandol
 
+-- Retorna una llista amb les posicions i peces del bàndol del color
+-- passat per paràmetre d'acord amb el tauler passat per paràmetre. 
 pecesDeColor :: Tauler -> Color -> [(Posicio, Peca)]
 pecesDeColor (Tau []) color = []
 pecesDeColor (Tau ((p, (Pec pt pc)) : t)) color = if (pc == color) then (p, (Pec pt pc)) : pecesDeColor (Tau t) color else pecesDeColor (Tau t) color
 
+-- Retorna un llistat amb els moviments que poden fer les peces del
+-- bàndol del color passat per paràmetre d'acord amb el tauler passat
+-- per paràmetre.
 movimentsColor :: Tauler -> Color -> [Posicio]
 movimentsColor t color = moviments (pecesDeColor t color)
 
@@ -379,15 +408,11 @@ escac (Tau t) c = elem posRei movimentsContrincant
         colorContrincant = if (c == Blanc) then Negre else Blanc
         movimentsContrincant = movimentsColor (Tau t) colorContrincant
 
--- Ens fa falta una funció que accedeixi a una posició concreta del tauler... 
-casellaLliure :: Tauler -> Posicio -> Bool
-casellaLliure t p = isNothing (trobarPeca t p)
-
 -- Si la jugada és vàlida, retornarà 0 o 1. Això es determinarà a partir de
--- la jugada que es vol fer i l'estat del tauler. Retornarà 0 quan la jugada
--- passada sigui vàlida i no es capturi a cap peça contrincant. Si la jugada
--- és vàlida però es captura una peça contrincant, es retornarà 1. Si la
--- jugada no és vàlida, retorna:
+-- la jugada que es vol fer i l'estat del tauler, que són elements que es passen
+-- per paràmetre. Retornarà 0 quan la jugada passada sigui vàlida i no es capturi
+-- a cap peça contrincant. Si la jugada és vàlida però es captura una peça contrincant,
+-- es retornarà 1. Si la jugada no és vàlida, retorna:
 --      -1 -> "La casella origen de la jugada esta buida"
 --      -2 -> "La peça de la casella origen no coincideix amb la peça de la jugada"
 --      -3 -> "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
