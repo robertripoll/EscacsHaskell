@@ -1,5 +1,6 @@
 import Data.Char
 import Data.Maybe
+import Debug.Trace
 
 -- TIPUS DE DADES I INSTANCES
 
@@ -133,6 +134,44 @@ instance Show Tauler where
 
 data Partida = Par Tauler Color
 
+
+-- "VARIABLES" PER FER PROVES
+
+rei :: Peca
+rei = Pec Rei Blanc
+
+reina :: Peca
+reina = Pec Reina Negre
+
+cavall :: Peca
+cavall = Pec Cavall Negre
+
+torre :: Peca
+torre = Pec Torre Negre
+
+alfil :: Peca
+alfil = Pec Alfil Negre
+
+peo :: Peca
+peo = Pec Peo Blanc
+
+posA :: Posicio
+posA = 'g' :/ 5
+
+posB :: Posicio
+posB = 'c' :/ 3
+
+posC :: Posicio
+posC = 'a' :/ 3
+
+casA :: Casella
+casA = (posA, peo)
+
+casB :: Casella
+casB = (posB, torre)
+
+unaJugada :: Jugada
+unaJugada = Jug torre ('a':/3) ('z':/3)
 
 -- MÈTODES
 
