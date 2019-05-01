@@ -458,7 +458,7 @@ jugadesColor t c = jugsPeces (pecesDeColor t c)
     where
         jugs p [] = []
         jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms -- Construïm els moviments que iterem de la llista passada per paràmetre relatius a la peça passada per paràmetre
-        jugLegal j = jugadaValida t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
+        jugLegal j = jugadaValida t j >= 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
         jugsPeces [] = []
         jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps -- Generem les jugades vàlides i legals a partir dels moviments que poden fer les peçes del color passat per paràmetre (passat a "jugadesColor")
 
