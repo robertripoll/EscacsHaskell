@@ -1,0 +1,5 @@
+1. Pd2d4 Pd7d5
+2. Ac1e3 Ac8e6
+3. Cb1a3 Cb8a6
+4. Dd1d2 Dd8d7
+5. 0-0-0 0-0-0
