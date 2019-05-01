@@ -7,6 +7,10 @@ import Data.Maybe
 
 data Color = Blanc | Negre deriving (Eq, Show)
 
+-- Retorna el color contrari al passar per paràmetre.
+colorContrincant :: Color -> Color
+colorContrincant c = if c == Negre then Blanc else Negre
+
 -- TipusPeça
 
 data TipusPeca = Rei | Reina | Torre | Alfil | Cavall | Peo deriving Eq
@@ -56,37 +60,77 @@ llegirPeca p color = do
     else if (p == 'D') then (Pec Reina color)
     else (Pec Rei color)
 
--- Crea una posició a partir de dos enters passats
--- per paràmetre dins d'una tupla, dels quals el primer
--- element de la tupla representa la columna i el segon
--- representa la fila.
-ferPos :: (Int, Int) -> Posicio
-ferPos (x, y) = (chr x :/ y)
+-- Tauler
 
+data Tauler = Tau [(Posicio, Peca)]
+instance Show Tauler where
+    show t = do
+        let tauler = taulerToString t
+        "\n" ++ show "  ============" ++ ""++"\n"++"" ++ "8- | " ++ take 8 (drop 56 tauler) ++ " |"++""++"\n"++""++"7- | " ++ take 8 (drop 48 tauler) ++ " |"++""++"\n"++""++"6- | " ++ take 8 (drop 40 tauler) ++ " |"++"\n"++"5- | " ++ take 8 (drop 32 tauler) ++ " |"++"\n"++"4- | " ++ take 8 (drop 24 tauler) ++ " |"++"\n"++"3- | " ++ take 8 (drop 16 tauler) ++ " |"++"\n"++"2- | " ++ take 8 (drop 8 tauler) ++ " |"++"\n"++"1- | " ++ take 8 tauler ++ " |"++"\n"++"   ============"++"\n"++"     abcdefgh"
+
+-- Rep un Tauler per paràmetres, el transforma en un string
+-- i aleshores mostra cada caràcter de l'string corresponent
+-- a una Casella. En cas de no haver-hi Peca es mostra " ".
 mostraTauler :: Tauler -> IO()
 mostraTauler t = do
     let tauler = taulerToString t
-    putStrLn("   ============")
-    putStrLn("8- | " ++ take 8 (drop 56 tauler) ++ " |")
-    putStrLn("7- | " ++ take 8 (drop 48 tauler) ++ " |")
-    putStrLn("6- | " ++ take 8 (drop 40 tauler) ++ " |")
-    putStrLn("5- | " ++ take 8 (drop 32 tauler) ++ " |")
-    putStrLn("4- | " ++ take 8 (drop 24 tauler) ++ " |")
-    putStrLn("3- | " ++ take 8 (drop 16 tauler) ++ " |")
-    putStrLn("2- | " ++ take 8 (drop 8 tauler) ++ " |")
-    putStrLn("1- | " ++ take 8 tauler ++ " |")
-    putStrLn("   ============")
-    putStrLn("     abcdefgh")
+    let l1 = take 8 (drop 56 tauler)
+    let l2 = take 8 (drop 48 tauler)
+    let l3 = take 8 (drop 40 tauler)
+    let l4 = take 8 (drop 32 tauler)
+    let l5 = take 8 (drop 24 tauler)
+    let l6 = take 8 (drop 16 tauler)
+    let l7 = take 8 (drop 8 tauler)
+    let l8 = take 8 tauler
 
+    putStrLn("      A     B     C     D     E     F     G     H")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("8- #  "++ take 1  l1 ++ "  #  "++ take 1 (drop 1 l1) ++ "  #  "++ take 1 (drop 2 l1) ++ "  #  "++ take 1 (drop 3 l1) ++ "  #  "++ take 1 (drop 4 l1) ++ "  #  "++ take 1 (drop 5 l1) ++ "  #  "++ take 1 (drop 6 l1) ++ "  #  "++ take 1 (drop 7 l1) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("7- #  "++ take 1  l2 ++ "  #  "++ take 1 (drop 1 l2) ++ "  #  "++ take 1 (drop 2 l2) ++ "  #  "++ take 1 (drop 3 l2) ++ "  #  "++ take 1 (drop 4 l2) ++ "  #  "++ take 1 (drop 5 l2) ++ "  #  "++ take 1 (drop 6 l2) ++ "  #  "++ take 1 (drop 7 l2) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("6- #  "++ take 1  l3 ++ "  #  "++ take 1 (drop 1 l3) ++ "  #  "++ take 1 (drop 2 l3) ++ "  #  "++ take 1 (drop 3 l3) ++ "  #  "++ take 1 (drop 4 l3) ++ "  #  "++ take 1 (drop 5 l3) ++ "  #  "++ take 1 (drop 6 l3) ++ "  #  "++ take 1 (drop 7 l3) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("5- #  "++ take 1  l4 ++ "  #  "++ take 1 (drop 1 l4) ++ "  #  "++ take 1 (drop 2 l4) ++ "  #  "++ take 1 (drop 3 l4) ++ "  #  "++ take 1 (drop 4 l4) ++ "  #  "++ take 1 (drop 5 l4) ++ "  #  "++ take 1 (drop 6 l4) ++ "  #  "++ take 1 (drop 7 l4) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("4- #  "++ take 1  l5 ++ "  #  "++ take 1 (drop 1 l5) ++ "  #  "++ take 1 (drop 2 l5) ++ "  #  "++ take 1 (drop 3 l5) ++ "  #  "++ take 1 (drop 4 l5) ++ "  #  "++ take 1 (drop 5 l5) ++ "  #  "++ take 1 (drop 6 l5) ++ "  #  "++ take 1 (drop 7 l5) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("3- #  "++ take 1  l6 ++ "  #  "++ take 1 (drop 1 l6) ++ "  #  "++ take 1 (drop 2 l6) ++ "  #  "++ take 1 (drop 3 l6) ++ "  #  "++ take 1 (drop 4 l6) ++ "  #  "++ take 1 (drop 5 l6) ++ "  #  "++ take 1 (drop 6 l6) ++ "  #  "++ take 1 (drop 7 l6) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("2- #  "++ take 1  l7 ++ "  #  "++ take 1 (drop 1 l7) ++ "  #  "++ take 1 (drop 2 l7) ++ "  #  "++ take 1 (drop 3 l7) ++ "  #  "++ take 1 (drop 4 l7) ++ "  #  "++ take 1 (drop 5 l7) ++ "  #  "++ take 1 (drop 6 l7) ++ "  #  "++ take 1 (drop 7 l7) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("1- #  "++ take 1  l8 ++ "  #  "++ take 1 (drop 1 l8) ++ "  #  "++ take 1 (drop 2 l8) ++ "  #  "++ take 1 (drop 3 l8) ++ "  #  "++ take 1 (drop 4 l8) ++ "  #  "++ take 1 (drop 5 l8) ++ "  #  "++ take 1 (drop 6 l8) ++ "  #  "++ take 1 (drop 7 l8) ++ "  #  ")
+    putStrLn("   #     #     #     #     #     #     #     #     #")
+    putStrLn("   #################################################")    
+
+-- Es rep un tauler (llista de peces i posicions)
+-- i posteriorment es concatena un string amb valor " "
+-- per a les caselles que es troben buides.
 taulerToString :: Tauler -> String
 taulerToString t = _m(trobarPeces t pos) where
         list = [(x,y) | y <- [1..8], x <- [ord 'a'.. ord 'h']] 
         pos = map ferPos list
         _m [] = []
         _m (x:xs)
-            | x == Nothing = "." ++ _m xs
+            | x == Nothing = " " ++ _m xs
             | otherwise = [mostraPeca (fromJust x)] ++ _m xs
-    
+
+-- Majúscules per les Blanques, altrament Negres.    
 instance Show Peca where
     show (Pec tipus color)
         | (tipus == Rei) = show (mostrarColor color 'R')
@@ -103,6 +147,13 @@ data Posicio = Char :/ Int deriving Eq
 instance Show Posicio where
     show (fila :/ col) = show fila ++ show col
 
+-- Crea una posició a partir de dos enters passats
+-- per paràmetre dins d'una tupla, dels quals el primer
+-- element de la tupla representa la columna i el segon
+-- representa la fila.
+ferPos :: (Int, Int) -> Posicio
+ferPos (x, y) = (chr x :/ y)
+
 -- Jugada
 
 data Jugada = Jug Peca Posicio Posicio deriving Eq
@@ -112,7 +163,7 @@ instance Show Jugada where
 
 -- JugadaGenerica 
 
-data JugadaGenerica = Jugada Peca Posicio Posicio | EnrocCurt Peca Posicio Posicio | EnrocLlarg Peca Posicio Posicio | Escac Peca Posicio Posicio | EscacMat Peca Posicio Posicio deriving (Eq, Show)
+data JugadaGenerica = Jugada Peca Posicio Posicio | Captura Peca Posicio Posicio | EnrocCurt Peca Posicio Posicio | EnrocLlarg Peca Posicio Posicio | Escac Peca Posicio Posicio | EscacMat Peca Posicio Posicio deriving (Eq, Show)
 
 -- Casella
 
@@ -121,47 +172,12 @@ type Casella = (Posicio, Peca)
 mostraCasella :: Casella -> Char
 mostraCasella (_, p) = mostraPeca p
 
--- Tauler
-
-data Tauler = Tau [(Posicio, Peca)]
-instance Show Tauler where
-    show t = do
-        let tauler = taulerToString t
-        "\n" ++ show "  ============" ++ ""++"\n"++"" ++ "8- | " ++ take 8 (drop 56 tauler) ++ " |"++""++"\n"++""++"7- | " ++ take 8 (drop 48 tauler) ++ " |"++""++"\n"++""++"6- | " ++ take 8 (drop 40 tauler) ++ " |"++"\n"++"5- | " ++ take 8 (drop 32 tauler) ++ " |"++"\n"++"4- | " ++ take 8 (drop 24 tauler) ++ " |"++"\n"++"3- | " ++ take 8 (drop 16 tauler) ++ " |"++"\n"++"2- | " ++ take 8 (drop 8 tauler) ++ " |"++"\n"++"1- | " ++ take 8 tauler ++ " |"++"\n"++"   ============"++"\n"++"     abcdefgh"
-
 -- Partida
 
 data Partida = Par Tauler Color
 
 
--- MÈTODES
-
--- Retorna la peça ("Just Peça") del tauler passat per paràmetre
--- que es troba a la posició passada per paràmetre. Si la posició
--- no existeix retorna "Nothing".
-trobarPeca :: Tauler -> Posicio -> Maybe Peca
-trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0))
-    where
-        esCasella (pc :/ pf) (p, _) = p == (pc :/ pf)
-        trobat = (filter (esCasella p) t)
-        peca (_, x) = x
-
--- Retorna un conjunt de peces que tenen la posició passada per
--- paràmetre en una llista, d'acord amb el tauler passat per
--- paràmetre. Si una posició de les passades a la llista no es
--- troba, s'afegirà un "Nothing" a la llista a retornar; en cas
--- que es trobi, s'afegirà un "Just Peca".
-trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
-trobarPeces t [] = []
-trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
-
--- Retorna la fila d'una posició passada per paràmetre.
-fila :: Posicio -> Int
-fila (_ :/ x) = x
-
--- Retorna la columna d'una posició passada per paràmetre.
-columna :: Posicio -> Char
-columna (x :/ _) = x
+-- MOVIMENTS
 
 -- Retorna cert si la posició passada per paràmetre
 -- és vàlida (no surt fora del rang del tauler); fals
@@ -208,6 +224,36 @@ posicioDiagInfEsq (col :/ fila) = (chr (ord col - 1)) :/ (fila - 1)
 -- inferior dreta respecte la posició passada per paràmetre.
 posicioDiagInfDreta :: Posicio -> Posicio
 posicioDiagInfDreta (col :/ fila) = (chr (ord col + 1)) :/ (fila - 1)
+
+
+-- MÈTODES
+
+-- Retorna la peça ("Just Peça") del tauler passat per paràmetre
+-- que es troba a la posició passada per paràmetre. Si la posició
+-- no existeix retorna "Nothing".
+trobarPeca :: Tauler -> Posicio -> Maybe Peca
+trobarPeca (Tau t) p = if (null trobat) then Nothing else Just (snd (trobat !! 0))
+    where
+        esCasella (pc :/ pf) (p, _) = p == (pc :/ pf)
+        trobat = (filter (esCasella p) t)
+        peca (_, x) = x
+
+-- Retorna un conjunt de peces que tenen la posició passada per
+-- paràmetre en una llista, d'acord amb el tauler passat per
+-- paràmetre. Si una posició de les passades a la llista no es
+-- troba, s'afegirà un "Nothing" a la llista a retornar; en cas
+-- que es trobi, s'afegirà un "Just Peca".
+trobarPeces :: Tauler -> [Posicio] -> [Maybe Peca]
+trobarPeces t [] = []
+trobarPeces t (p : ps) = (trobarPeca t p) : (trobarPeces t ps)
+
+-- Retorna la fila d'una posició passada per paràmetre.
+fila :: Posicio -> Int
+fila (_ :/ x) = x
+
+-- Retorna la columna d'una posició passada per paràmetre.
+columna :: Posicio -> Char
+columna (x :/ _) = x
 
 -- Aplica una funció passada per paràmetre a una posició
 -- passada per paràmetre, i retorna, en un llistat, el resultat
@@ -438,7 +484,7 @@ escacMat (Tau t) c = (escac (Tau t) c) && senseEscapatoria -- Si a l'estat actua
 llegirLinia :: String -> (String, JugadaGenerica, Maybe JugadaGenerica)
 llegirLinia x =
     if (length (words x) == 2)
-        then tornaDos (words x)
+        then tornaDos (words x) 
         else tornaTres (words x)
     where
         tornaDos [num,j1] = (num, llegirJugada j1 Blanc, Nothing)
@@ -448,8 +494,8 @@ llegirLinia x =
 -- retorna el tipus de JugadaGenerica concret que és      
 llegirJugada :: String -> Color -> JugadaGenerica
 llegirJugada jug color
-    | (elem '0' jug) && length jug>3 = (EnrocLlarg (Pec Rei color) (' ':/ 0 ) (' ':/ 0)) --TODO: ENROC CURT
-    | (elem '0' jug) = (EnrocCurt (Pec Rei color) (' ':/ 0) (' ':/ 0)) --TODO: ENROC LLARG
+    | (elem '0' jug) && length jug>3 = (EnrocLlarg (Pec Rei color) (' ':/ 0 ) (' ':/ 0)) 
+    | (elem '0' jug) = (EnrocCurt (Pec Rei color) (' ':/ 0) (' ':/ 0)) 
     | (elem '+' jug) = do
         let jugClean = [ x | x <- jug, not (x `elem` "x+") ]
         let p = take 1 jugClean !! 0
@@ -467,91 +513,115 @@ llegirJugada jug color
         let y1 = take 1 (drop 2 jugClean) !! 0
         let x2 = take 1 (drop 3 jugClean) !! 0
         let y2 = take 1 (drop 4 jugClean) !! 0
-        (Jugada (llegirPeca p color) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+        if (length jugClean) < (length jug) then (Captura (llegirPeca p color) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
+        else (Jugada (llegirPeca p color) ( x1 :/ digitToInt y1 ) ( x2 :/ digitToInt y2 ))
 
---      -1 -> "La casella origen de la jugada esta buida"
---      -2 -> "La peça de la casella origen no coincideix amb la peça de la jugada"
---      -3 -> "El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça"
---      -4 -> "Hi ha una peça pel mig entre la posició origen i la posició destí la jugada"
---      -5 -> "La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada"
+-- Des d'aquesta funció es controlen els errors d'invalidesa d'una 
+-- determinada jugada. Tanmateix és la que a partir de subtipus de
+-- JugadaGenerica donat, i el tauler, s'efectuaran les comprovacions
+-- i les crides a fesJugada.
 tractaUnaJugada :: String -> Tauler -> Color -> JugadaGenerica -> Tauler
-tractaUnaJugada n tauler color (Jugada (Pec tip _) p q) = do
-        let jug = (Jug (Pec tip color) p q)
-        let res = jugadaLegal tauler jug
-        if res == 0 then fesJugada tauler jug
-        else if res == -1 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La casella origen de la jugada esta buida")
-        else if res == -2 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La peça de la casella origen no coincideix amb la peça de la jugada")
-        else if res == -3 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça")
-        else if res == -4 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": Hi ha una peça pel mig entre la posició origen i la posició destí la jugada")
-        else if res == -5 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada")
-        else if res == -6 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La situació actual és d'escac, i la jugada segueix en escac")
-        else fesJugada tauler jug
-tractaUnaJugada n tauler color (Escac pe p q)        
-        | jugadaValida tauler (Jug pe p q) >= 0 && escac (fesJugada tauler (Jug pe p q)) (colorContrincant color) = fesJugada tauler (Jug pe p q)
-        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCAC, i no ho és")
-        where colorContrincant c = if c==Negre then Blanc else Negre
-tractaUnaJugada n tauler color (EscacMat pe p q)     
-        | jugadaValida tauler (Jug pe p q) >= 0 && escac(fesJugada tauler (Jug pe p q)) (colorContrincant color) = fesJugada tauler (Jug pe p q)
-        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCACMAT, i no ho és.")
-        where colorContrincant c = if c==Negre then Blanc else Negre
+tractaUnaJugada n tauler color (Jugada (Pec tip c) p q) = do
+    let jug = (Jug (Pec tip color) p q)
+    let res = jugadaLegal tauler jug
+    let esc = jugadaValida tauler jug >= 0 && escac (fesJugada tauler jug) (colorContrincant color)
+    let mat = escac (fesJugada tauler jug) (colorContrincant color) 
+    if esc
+    then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": No s'ha indicat l'escac.")
+    else if res == 0 then fesJugada tauler jug
+    else if res == -1 then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La casella origen de la jugada esta buida")
+    else if res == -2 then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": La peça de la casella origen no coincideix amb la peça de la jugada")
+    else if res == -3 then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": El moviment de la jugada no és vàlid d'acord amb els moviments que pot fer la peça")
+    else if res == -4 then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": Hi ha una peça pel mig entre la posició origen i la posició destí la jugada")
+    else if res == -5 then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La posició destí de la jugada està ocupada per una peça del mateix jugador que fa la jugada")
+    else if res == -6 then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La situació actual és d'escac, i la jugada segueix en escac")
+    else fesJugada tauler jug
+tractaUnaJugada n tauler color (Escac pe p q) = do
+    let jug = (Jug pe p q)
+    let val = jugadaLegal tauler jug >= 0
+    let esc = escac (fesJugada tauler jug) (colorContrincant color)
+    let mat = escacMat (fesJugada tauler jug) (colorContrincant color)
+    if(val && esc && mat) then error("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCAC, i és MAT")
+    else if (val && esc) then fesJugada tauler (Jug pe p q)
+    else error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCAC, i no ho és")
+tractaUnaJugada n tauler color (EscacMat pe p q) = do
+    let jug = (Jug pe p q)
+    let val = jugadaLegal tauler jug >= 0
+    let mat = escacMat (fesJugada tauler jug) (colorContrincant color)
+    if(val && mat) then fesJugada tauler (Jug pe p q)
+    else error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCACMAT, i no ho és")
+tractaUnaJugada n tauler color (Captura pe p q) = do
+    let jug = (Jug pe p q)
+    let val = jugadaLegal tauler jug >= 0
+    let esc = escac (fesJugada tauler jug) (colorContrincant color)
+    if jugadaValida tauler jug >= 0 && escac (fesJugada tauler jug) (colorContrincant color)
+    then error ("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++": No s'ha indicat l'escac.")
+    else if jugadaValida tauler (Jug pe p q) == 1 then fesJugada tauler (Jug pe p q)
+    else error("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat CAPTURA, i no ho és.")
 tractaUnaJugada n tauler color (EnrocCurt pe p q)
-        | escac tauler color = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
-        | otherwise = do
-        let posReiIni = if color==Negre then ('e' :/ 8) else ('e' :/ 1) 
-        let posReiFi = if color==Negre then ('g' :/ 8) else ('g' :/ 1) 
-        let posTorreIni = if color==Negre then ('h' :/ 8) else ('h' :/ 1)
-        let posTorreFi = if color == Negre then ('f' :/ 8) else ('f' :/ 1)
-        let posF = if color == Negre then ('f' :/ 8) else ('f' :/ 1)
-        let posG = if color == Negre then ('g' :/ 8) else ('g' :/ 1)
-        let c1 = jugadaValida tauler (Jug (Pec Rei color) posReiIni posF) == 0 
-        let c2 = jugadaValida (fesJugada tauler (Jug (Pec Rei color) posReiIni posF)) (Jug (Pec Rei color) posF posG) == 0 
-        let c3 = True -- Comprovar q la torre dreta no s'ha mogut
-        let c4 = True -- Comprovar que el rei no s'ha mogut
-        if (c1 && c2 && c3 && c4)
-            then fesJugada (fesJugada tauler (Jug (Pec Torre color) posTorreIni posTorreFi)) (Jug (Pec Rei color) posReiIni posReiFi)
-            else error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc curt.")
+    | escac tauler (colorContrincant color) = error("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
+    | otherwise = do
+    let posReiIni = if color==Negre then ('e' :/ 8) else ('e' :/ 1) 
+    let posReiFi = if color==Negre then ('g' :/ 8) else ('g' :/ 1) 
+    let posTorreIni = if color==Negre then ('h' :/ 8) else ('h' :/ 1)
+    let posTorreFi = if color == Negre then ('f' :/ 8) else ('f' :/ 1)
+    let posF = if color == Negre then ('f' :/ 8) else ('f' :/ 1)
+    let posG = if color == Negre then ('g' :/ 8) else ('g' :/ 1)
+    let c1 = jugadaValida tauler (Jug (Pec Rei color) posReiIni posF) == 0 
+    let c2 = jugadaValida (fesJugada tauler (Jug (Pec Rei color) posReiIni posF)) (Jug (Pec Rei color) posF posG) == 0 
+    let c3 = True -- Comprovar q la torre dreta no s'ha mogut
+    let c4 = True -- Comprovar que el rei no s'ha mogut
+    if (c1 && c2 && c3 && c4)
+        then fesJugada (fesJugada tauler (Jug (Pec Torre color) posTorreIni posTorreFi)) (Jug (Pec Rei color) posReiIni posReiFi)
+        else error("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc curt.")
 tractaUnaJugada n tauler color (EnrocLlarg pe p q)
-        | escac tauler color =error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
-        | otherwise = do 
-        let posReiIni = if color==Negre then ('e' :/ 8) else ('e' :/ 1) 
-        let posReiFi = if color==Negre then ('c' :/ 8) else ('c' :/ 1) 
-        let posTorreIni = if color==Negre then ('a' :/ 8) else ('a' :/ 1)
-        let posTorreFi = if color == Negre then ('d' :/ 8) else ('d' :/ 1)
-        let posB = if color == Negre then ('b' :/ 8) else ('b' :/ 1)
-        let posC = if color == Negre then ('c' :/ 8) else ('c' :/ 1)
-        let posD = if color == Negre then ('d' :/ 8) else ('d' :/ 1)
-        let c1 = jugadaValida tauler (Jug (Pec Rei color) posReiIni posD) == 0 
-        let c2 = jugadaValida (fesJugada tauler (Jug (Pec Rei color) posReiIni posD)) (Jug (Pec Rei color) posD posC) == 0 -- && (jugadaValida tauler (Jug (Pec Rei color) posC posB))==0
-        let c3 = jugadaValida (fesJugada (fesJugada tauler (Jug (Pec Rei color) posReiIni posD)) (Jug (Pec Rei color) posD posC)) (Jug (Pec Rei color) posC posB) == 0
-        let c4 = True -- Comprovar q la torre esq no s'ha mogut
-        let c5 = True -- Comprovar que el rei no s'ha mogut
-        if (c1 && c2 && c3 && c4 && c5)
-            then fesJugada (fesJugada tauler (Jug (Pec Torre color) posTorreIni posTorreFi)) (Jug (Pec Rei color) posReiIni posReiFi)
-            else error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc llarg.")
-        
+    | escac tauler color =error("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
+    | otherwise = do 
+    let posReiIni = if color==Negre then ('e' :/ 8) else ('e' :/ 1) 
+    let posReiFi = if color==Negre then ('c' :/ 8) else ('c' :/ 1) 
+    let posTorreIni = if color==Negre then ('a' :/ 8) else ('a' :/ 1)
+    let posTorreFi = if color == Negre then ('d' :/ 8) else ('d' :/ 1)
+    let posB = if color == Negre then ('b' :/ 8) else ('b' :/ 1)
+    let posC = if color == Negre then ('c' :/ 8) else ('c' :/ 1)
+    let posD = if color == Negre then ('d' :/ 8) else ('d' :/ 1)
+    let c1 = jugadaValida tauler (Jug (Pec Rei color) posReiIni posD) == 0 
+    let c2 = jugadaValida (fesJugada tauler (Jug (Pec Rei color) posReiIni posD)) (Jug (Pec Rei color) posD posC) == 0 
+    let c3 = jugadaValida (fesJugada (fesJugada tauler (Jug (Pec Rei color) posReiIni posD)) (Jug (Pec Rei color) posD posC)) (Jug (Pec Rei color) posC posB) == 0
+    let c4 = True -- Comprovar q la torre esq no s'ha mogut
+    let c5 = True -- Comprovar que el rei no s'ha mogut
+    if (c1 && c2 && c3 && c4 && c5)
+        then fesJugada (fesJugada tauler (Jug (Pec Torre color) posTorreIni posTorreFi)) (Jug (Pec Rei color) posReiIni posReiFi)
+        else error("\n\nINVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc llarg.")
+
+-- Donat un Tauler i una tupla de tres elements, comprovem si
+-- es tracta d'una jugada de blanques unicament o bé de ambdós
+-- colors intervenint. Retorna el tauler havent aplicat les jugades. 
 evalua :: Tauler -> (String, JugadaGenerica, Maybe JugadaGenerica) -> Tauler
 evalua t (n, j1, Nothing) = (tractaUnaJugada n t Blanc j1)
 evalua t (n, j1, Just j2) = (tractaUnaJugada n (tractaUnaJugada n t Blanc j1) Negre j2)
 
+-- En aquesta funció es mostren els missatges de informació sobre 
+-- les diferents Rondes, amb el respectiu tauler, etc. No només mostra,
+-- sinó que recursivament crida a la funció evalua mentre mostra missatges.
 iteraRondes :: Tauler -> [(String, JugadaGenerica, Maybe JugadaGenerica)] -> IO()
 iteraRondes tauler rondes 
     | length rondes == 0 = do 
-                putStrLn ("\nTauler final")
-                mostraTauler tauler
-                putStrLn "Fi de partida."
+        putStrLn ("\nTauler final")
+        mostraTauler tauler
+        putStrLn "Fi de partida."
     | otherwise = do     
-                let ronda = take 1 rondes !!0
-                putStrLn ("Tauler previ Ronda " ++ mostraRondaStr ronda)
-                mostraTauler tauler
-                putStrLn ("Blanques: " ++ mostraJ1 ronda)
-                putStrLn ("Negres:   " ++ mostraJ2 ronda ++ "\n")
-                iteraRondes ( evalua tauler (ronda) ) (drop 1 rondes)
-                where 
-                mostraRondaStr (a,b,c) = a
-                mostraJ1 (a,b,c) = show b
-                mostraJ2 (a,b,c)
-                    | c == Nothing = "Peces Negres no juguen"
-                    | otherwise =  show (fromJust c)
+        let ronda = take 1 rondes !!0
+        putStrLn ("Tauler previ Ronda " ++ mostraRondaStr ronda)
+        mostraTauler tauler
+        putStrLn ("Blanques: " ++ mostraJ1 ronda )
+        putStrLn ("Negres:   " ++ mostraJ2 ronda ++ "\n")
+        iteraRondes ( evalua tauler (ronda) ) (drop 1 rondes)
+        where 
+        mostraRondaStr (a,b,c) = a
+        mostraJ1 (a,b,c) = show b
+        mostraJ2 (a,b,c)
+            | c == Nothing = "No juguen"
+            | otherwise =  show (fromJust c)
 
 -- Exemple d'ús: llegirPartida "pastor.txt"
 -- Interpreta la partida i la tradueix a Jugades, s'evaluen a "evalua"
