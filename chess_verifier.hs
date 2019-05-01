@@ -1,6 +1,5 @@
 import Data.Char
 import Data.Maybe
-import Debug.Trace
 
 -- TIPUS DE DADES I INSTANCES
 
@@ -134,44 +133,6 @@ instance Show Tauler where
 
 data Partida = Par Tauler Color
 
-
--- "VARIABLES" PER FER PROVES
-
-rei :: Peca
-rei = Pec Rei Blanc
-
-reina :: Peca
-reina = Pec Reina Negre
-
-cavall :: Peca
-cavall = Pec Cavall Negre
-
-torre :: Peca
-torre = Pec Torre Negre
-
-alfil :: Peca
-alfil = Pec Alfil Negre
-
-peo :: Peca
-peo = Pec Peo Blanc
-
-posA :: Posicio
-posA = 'g' :/ 5
-
-posB :: Posicio
-posB = 'c' :/ 3
-
-posC :: Posicio
-posC = 'a' :/ 3
-
-casA :: Casella
-casA = (posA, peo)
-
-casB :: Casella
-casB = (posB, torre)
-
-unaJugada :: Jugada
-unaJugada = Jug torre ('a':/3) ('z':/3)
 
 -- MÈTODES
 
@@ -458,7 +419,7 @@ jugadesColor t c = jugsPeces (pecesDeColor t c)
     where
         jugs p [] = []
         jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms -- Construïm els moviments que iterem de la llista passada per paràmetre relatius a la peça passada per paràmetre
-        jugLegal j = jugadaValida t j >= 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
+        jugLegal j = jugadaValida t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
         jugsPeces [] = []
         jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps -- Generem les jugades vàlides i legals a partir dels moviments que poden fer les peçes del color passat per paràmetre (passat a "jugadesColor")
 
@@ -487,8 +448,8 @@ llegirLinia x =
 -- retorna el tipus de JugadaGenerica concret que és      
 llegirJugada :: String -> Color -> JugadaGenerica
 llegirJugada jug color
-    | (elem '0' jug) && length jug>3 = (EnrocCurt torre ('a':/3) ('z':/3)) --TODO: ENROC CURT
-    | (elem '0' jug) = (EnrocLlarg torre ('a':/3) ('z':/3)) --TODO: ENROC LLARG
+    | (elem '0' jug) && length jug>3 = (EnrocLlarg (Pec Rei color) (' ':/ 0 ) (' ':/ 0)) --TODO: ENROC CURT
+    | (elem '0' jug) = (EnrocCurt (Pec Rei color) (' ':/ 0) (' ':/ 0)) --TODO: ENROC LLARG
     | (elem '+' jug) = do
         let jugClean = [ x | x <- jug, not (x `elem` "x+") ]
         let p = take 1 jugClean !! 0
@@ -526,15 +487,48 @@ tractaUnaJugada n tauler color (Jugada (Pec tip _) p q) = do
         else if res == -6 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La situació actual és d'escac, i la jugada segueix en escac")
         else fesJugada tauler jug
 tractaUnaJugada n tauler color (Escac pe p q)        
-        | jugadaLegal tauler (Jug pe p q) > 0 && escac tauler color = fesJugada tauler (Jug pe p q)
-        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No s'ha indicat ESCAC << + >>")
+        | jugadaLegal tauler (Jug pe p q) > 0 && escac tauler (color) = fesJugada tauler (Jug pe p q)
+        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCAC, i no ho és")
 tractaUnaJugada n tauler color (EscacMat pe p q)     
-        | escacMat tauler color = fesJugada tauler (Jug pe p q)
-        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No s'ha indicat ESCACMAT << ++ >>")
-tractaUnaJugada n tauler color (EnrocLlarg pe p q)   
-        | True = fesJugada tauler (Jug peo posA posB)
-        | otherwise = fesJugada tauler (Jug peo posA posB)
-
+        | escac(fesJugada tauler (Jug pe p q)) (colorContrincant color) = fesJugada tauler (Jug pe p q)
+        | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCACMAT, i no ho és.")
+        where
+            colorContrincant c = if c==Negre then Blanc else Negre
+tractaUnaJugada n tauler color (EnrocCurt pe p q)
+        | escac tauler color = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
+        | otherwise = do
+        let posReiIni = if color==Negre then ('e' :/ 8) else ('e' :/ 1) 
+        let posReiFi = if color==Negre then ('g' :/ 8) else ('g' :/ 1) 
+        let posTorreIni = if color==Negre then ('h' :/ 8) else ('h' :/ 1)
+        let posTorreFi = if color == Negre then ('f' :/ 8) else ('f' :/ 1)
+        let posF = if color == Negre then ('f' :/ 8) else ('f' :/ 1)
+        let posG = if color == Negre then ('g' :/ 8) else ('g' :/ 1)
+        let c1 = jugadaValida tauler (Jug (Pec Rei color) posReiIni posF) == 0 
+        let c2 = jugadaValida (fesJugada tauler (Jug (Pec Rei color) posReiIni posF)) (Jug (Pec Rei color) posF posG) == 0 
+        let c3 = True -- Comprovar q la torre dreta no s'ha mogut
+        let c4 = True -- Comprovar que el rei no s'ha mogut
+        if (c1 && c2 && c3 && c4)
+            then fesJugada (fesJugada tauler (Jug (Pec Torre color) posTorreIni posTorreFi)) (Jug (Pec Rei color) posReiIni posReiFi)
+            else error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc curt.")
+tractaUnaJugada n tauler color (EnrocLlarg pe p q)
+        | escac tauler color =error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
+        | otherwise = do 
+        let posReiIni = if color==Negre then ('e' :/ 8) else ('e' :/ 1) 
+        let posReiFi = if color==Negre then ('c' :/ 8) else ('c' :/ 1) 
+        let posTorreIni = if color==Negre then ('a' :/ 8) else ('a' :/ 1)
+        let posTorreFi = if color == Negre then ('d' :/ 8) else ('d' :/ 1)
+        let posB = if color == Negre then ('b' :/ 8) else ('b' :/ 1)
+        let posC = if color == Negre then ('c' :/ 8) else ('c' :/ 1)
+        let posD = if color == Negre then ('d' :/ 8) else ('d' :/ 1)
+        let c1 = jugadaValida tauler (Jug (Pec Rei color) posReiIni posD) == 0 
+        let c2 = jugadaValida (fesJugada tauler (Jug (Pec Rei color) posReiIni posD)) (Jug (Pec Rei color) posD posC) == 0 -- && (jugadaValida tauler (Jug (Pec Rei color) posC posB))==0
+        let c3 = jugadaValida (fesJugada (fesJugada tauler (Jug (Pec Rei color) posReiIni posD)) (Jug (Pec Rei color) posD posC)) (Jug (Pec Rei color) posC posB) == 0
+        let c4 = True -- Comprovar q la torre esq no s'ha mogut
+        let c5 = True -- Comprovar que el rei no s'ha mogut
+        if (c1 && c2 && c3 && c4 && c5)
+            then fesJugada (fesJugada tauler (Jug (Pec Torre color) posTorreIni posTorreFi)) (Jug (Pec Rei color) posReiIni posReiFi)
+            else error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc llarg.")
+        
 evalua :: Tauler -> (String, JugadaGenerica, Maybe JugadaGenerica) -> Tauler
 evalua t (n, j1, Nothing) = (tractaUnaJugada n t Blanc j1)
 evalua t (n, j1, Just j2) = (tractaUnaJugada n (tractaUnaJugada n t Blanc j1) Negre j2)
