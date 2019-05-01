@@ -419,7 +419,7 @@ jugadesColor t c = jugsPeces (pecesDeColor t c)
     where
         jugs p [] = []
         jugs p (m : ms) = (Jug (snd p) (fst p) m) : jugs p ms -- Construïm els moviments que iterem de la llista passada per paràmetre relatius a la peça passada per paràmetre
-        jugLegal j = jugadaValida t j == 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
+        jugLegal j = jugadaValida t j >= 0 -- La jugada passada és legal o no d'acord amb el tauler passat per paràmetre
         jugsPeces [] = []
         jugsPeces (p : ps) = (filter jugLegal (jugs p (moviment (snd p) (fst p)))) ++ jugsPeces ps -- Generem les jugades vàlides i legals a partir dels moviments que poden fer les peçes del color passat per paràmetre (passat a "jugadesColor")
 
@@ -487,13 +487,13 @@ tractaUnaJugada n tauler color (Jugada (Pec tip _) p q) = do
         else if res == -6 then error ("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": La situació actual és d'escac, i la jugada segueix en escac")
         else fesJugada tauler jug
 tractaUnaJugada n tauler color (Escac pe p q)        
-        | jugadaLegal tauler (Jug pe p q) > 0 && escac tauler (color) = fesJugada tauler (Jug pe p q)
+        | jugadaValida tauler (Jug pe p q) >= 0 && escac (fesJugada tauler (Jug pe p q)) (colorContrincant color) = fesJugada tauler (Jug pe p q)
         | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCAC, i no ho és")
+        where colorContrincant c = if c==Negre then Blanc else Negre
 tractaUnaJugada n tauler color (EscacMat pe p q)     
-        | escac(fesJugada tauler (Jug pe p q)) (colorContrincant color) = fesJugada tauler (Jug pe p q)
+        | jugadaValida tauler (Jug pe p q) >= 0 && escac(fesJugada tauler (Jug pe p q)) (colorContrincant color) = fesJugada tauler (Jug pe p q)
         | otherwise = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": S'ha indicat ESCACMAT, i no ho és.")
-        where
-            colorContrincant c = if c==Negre then Blanc else Negre
+        where colorContrincant c = if c==Negre then Blanc else Negre
 tractaUnaJugada n tauler color (EnrocCurt pe p q)
         | escac tauler color = error("INVALID: Ronda "++ n ++" Jugador amb peces " ++ show color ++ ": No es pot realitzar l'enroc estant en escac.")
         | otherwise = do
